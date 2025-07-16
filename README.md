@@ -24,7 +24,7 @@ This project was born from our love for the communal experience of sharing food 
 
 ---
 
-MVP Features
+MVP Features  
   -Create profiles and simple list of food Allergens  (Distinction between airborne, injection, and disliked foods)  
   -Create and join potluck events  
   -Add dishes with ingredients list  
@@ -32,7 +32,7 @@ MVP Features
   -Notification system for people with Allergies day of    
 
 ----
-Tech Stack  
+Tech Stack   
 Mock-Up: Figma  
 Presentatino: Ppt  
 Front End:   
@@ -40,7 +40,7 @@ Back End:
 Database:  
 
 ---
-Stretchgoals Features 
+Stretchgoals Features    
   -Include food dislikes specifically targetting children.   
   -Saving recipes for future use under user profile.  
   -Integreation to import recipes from other platforms.  
