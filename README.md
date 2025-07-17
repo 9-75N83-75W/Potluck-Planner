@@ -34,7 +34,7 @@ MVP Features
 ----
 Tech Stack   
 Mock-Up: Figma  
-Presentatino: Ppt  
+Presentation: Ppt  
 Front End:   
 Back End:   
 Database:  
