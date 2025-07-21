@@ -15,7 +15,7 @@ A web app designed to help make potlucks safer and more inclusive by providing n
      <td>Evans Berrocal</td>
   </tr>
   <tr>
-     <td>Immaculate Okoruwa</td>
+     <td>Immaculate Chukwuemeka</td>
   </tr>
 </table>
 
