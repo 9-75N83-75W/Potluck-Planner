@@ -1,5 +1,5 @@
 {
-  "name": "potluck-backend",
+  "name": "potluckbackend",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
@@ -17,5 +17,6 @@
   },
   "devDependencies": {
     "nodemon": "^3.1.10"
-  }
+  },
+  "type": "module"
 }

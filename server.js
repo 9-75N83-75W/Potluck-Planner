@@ -1,6 +1,8 @@
-const express = require('express');
-const mongoose = require('mongoose');
-require('dotenv').config();
+import express from 'express';
+import mongoose from 'mongoose';
+import allroutes from './routes/allroutes.js'
+import dotenv from 'dotenv';
+dotenv.config();
 
 const app = express();
 app.use(express.json());
@@ -8,9 +10,7 @@ app.use(express.json());
 const PORT = process.env.PORT || 5000;
 
 // Test route
-app.get('/', (req, res) => {
-  res.send('Potluck backend testing');
-});
+app.use('/api',allroutes)
 
 // Connect to MongoDB and start server
 mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
