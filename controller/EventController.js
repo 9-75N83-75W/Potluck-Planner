@@ -6,8 +6,8 @@ export const createEvent=async(req,res)=>{
     try {
         //console.log("Incoming request of event",req.body);
         //reminder to use req.query when testing using postmate
-        const{eventname,email,dateAndTime,location,description,rsvpdate,members}=req.body;
-        if(!eventname){
+        const{eventName,email,dateAndTime,location,description,rsvpdate,members}=req.body;
+        if(!eventName){
             return res.status(400).json({message:"Please Name your event"})
         }
         //in the frontend pull email from UserController.js in function specificUser
@@ -29,7 +29,7 @@ export const createEvent=async(req,res)=>{
             return res.status(400).json({message:"Provide date by which attendees have to register s'il vouz plait"})
         }
         const newEvent=new Event({
-            eventname,
+            eventName,
             email,
             dateAndTime,
             location,
