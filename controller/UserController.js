@@ -38,7 +38,7 @@ console.log(name,email,phone,password,allergies);
             email:normalizedEmail,
             phone,
             password,
-            profileImage:req.file.buffer,
+            profileImage:req.file ? req.file.buffer : null,
             allergies:{
                 AirborneAllergy: allergies?.AirborneAllergy||[],
                 DietaryAllergy: allergies?.DietaryAllergy||[],
