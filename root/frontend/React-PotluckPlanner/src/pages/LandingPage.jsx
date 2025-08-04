@@ -1,25 +1,56 @@
 // imports for components
+import { useNavigate } from "react-router-dom";
+import Grid from '@mui/material/Grid';
+import WelcomeBlock from "../components/WelcomeBlock";
+
+
+
 
 function LandingPage() {
-  //const [isLogin, setIsLogin] = useState(true);
-  //const [message, setMessage] = useState("");
+
+  const nav = useNavigate();
+
+  // Navigation with 'path' variable passed
+  const navigate= (path)=> {
+    nav(path);
+  };
 
   return (
-    //<div className="p-6 bg-white rounded-lg shadow-md max-w-sm mx-auto">
-      //<h2 className="text-xl font-bold text-center">
-        //{isLogin ? "Login" : "Sign Up"}
-      //</h2>
-      //{isLogin ? <Login setMessage={setMessage} /> : <Signup setMessage={setMessage} setIsLogin={setIsLogin} />}
-      //<p className="text-red-500 text-center mt-2">{message}</p>
-      //<button
-        //onClick={() => setIsLogin(!isLogin)}
-        //className="text-sm text-blue-500 mt-3 block text-center"
-      //>
-        //{isLogin ? "Don't have an account? Sign up!" : "Already have an account? Login!"}
-      //</button>
-    //</div>
+
     <div>
-      <h1>Landing Page</h1>
+      {/* //Welcome text
+      //logo (crab emoji for now) 🦀🦀🦀🦀🦀🦀
+      //short sentence about the app: like "Plan your next potluck with ease"
+      //button to create user (redirects to CreateUser.jsx)
+      //button to sign in (redirects to SignIn.jsx)
+
+      //Potential AI generated stretch goals:
+      //button to contact the developer
+      //button to view the privacy policy
+      //button to view the terms of service
+      //button to view the about page --> linktree or github!
+      //Colabs with other group projects 👀 */}
+    
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",   // stack items vertically
+          justifyContent: "end",  // center vertically
+          alignItems: "flex-start",  // left-align content
+          height: "50vh",           // take full viewport height
+          paddingLeft: "10px",       // optional: push away from left edge
+      }}
+      >
+        <WelcomeBlock/>
+      </div>
+      <div>
+        <Grid
+            container direction="row"
+            sx={{justifyContent: "flex-start", alignItems: "center",}}>
+        <button onClick={() => navigate('/CreateAccount')}>Create Account</button>
+        <button onClick={() => navigate('/SignIn')}>Sign In</button>
+        </Grid>
+      </div>
     </div>
   );
 }
