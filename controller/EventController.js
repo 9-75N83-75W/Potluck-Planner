@@ -52,8 +52,8 @@ export const createEvent=async(req,res)=>{
 export const editFunction=async(req,res)=>{
     try { 
         const {id}=req.params
-        const{eventname,email,dateAndTime,location,description,rsvpdate,members}=req.body;
-        if(!eventname){
+        const{eventName,email,dateAndTime,location,description,rsvpdate,members}=req.body;
+        if(!eventName){
             return res.status(400).json({message:"Please Name your event"})
         }
         if(!email){
@@ -72,7 +72,7 @@ export const editFunction=async(req,res)=>{
             return res.status(400).json({message:"Provide date by which attendees have to register s'il vouz plait"})
         }
         const updateEvent=await Events.findByIdAndUpdate(
-            id,{eventname,dateAndTime,location,description,rsvpdate,members:{
+            id,{eventName,dateAndTime,location,description,rsvpdate,members:{
                 emails: members?.emails||[]
             }},{new:true}
         )
