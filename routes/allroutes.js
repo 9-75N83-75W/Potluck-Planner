@@ -4,7 +4,7 @@ import multer from 'multer';
 //users
 import { createUser, getAllUser, specificUser, forgetPassword } from '../controller/UserController.js';
 //events and invite
-import { createEvent,deleteEvent,editFunction,acceptInvite,countingAttendees } from '../controller/EventsController.js';
+import { createEvent,deleteEvent,editFunction,acceptInvite,countingAttendees } from '../controller/EventController.js';
 //recipes
 import { createRecipe,deleteRecipes,editRecipes } from '../controller/RecipesController.js';
 
