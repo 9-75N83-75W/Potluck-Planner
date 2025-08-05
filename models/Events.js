@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 
 const EventsSchema=new mongoose.Schema({
-    eventName:{type:String,},
+    eventname:{type:String,require:true},
     email:{type:String,},
     //for now as we dont have a calendar
     //date time type is inputted in the following format YYYY-MM-DDT15:00:00Z t is for time z is for time zone
@@ -12,8 +12,8 @@ const EventsSchema=new mongoose.Schema({
     rsvpdate:{type:Date,},
     totalAttendance:{type:Number},
     members:{
-        emails:{type:String},
-        attending:{type:Boolean}
+        emails:{type:[String]},
+        attending:{type:[Boolean]}
     }
 
     //confirm RSVP date before 
@@ -21,4 +21,4 @@ const EventsSchema=new mongoose.Schema({
 
 })
 
-export default mongoose.model('Event',EventsSchema);
+export default mongoose.model('Events',EventsSchema);

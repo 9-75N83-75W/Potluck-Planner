@@ -11,7 +11,7 @@ import { createRecipe,deleteRecipes,editRecipes } from '../controller/RecipesCon
 const storage=multer.memoryStorage();
 const upload=multer({storage})
 const router=express.Router();
-
+  
 //all routes for user
 router.post('/createUser',upload.single('profileImage'),createUser);
 
@@ -29,15 +29,15 @@ router.put('/updateEvent/:id',editFunction);
 router.delete('/deleteEvent/:id',deleteEvent);
 
 //all routes for recipes
-router.post('/createRecipe',createRecipe);
+router.post('/createmountain',createRecipe);
 
 router.put('/updateRecipe/:id',editRecipes);
 
 router.delete('/deleteRecipe/:id',deleteRecipes);
 
 //invites
-router.post('/inviteEvent/:id',acceptInvite);
+router.put('/inviteEvent/:id',acceptInvite);
 
-router.get('/attendees',countingAttendees);
+router.get('/attendees/:id',countingAttendees);
 
 export default router;

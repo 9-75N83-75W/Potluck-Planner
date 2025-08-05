@@ -101,7 +101,7 @@ export const specificUser=async(req,res)=>{
 
 export const forgetPassword=async(req,res)=>{
     try { 
-        const {email,password}=req.query;
+        const {email,password}=req.body;
         if (!email){
             return res.status(400).json({message:"Email is required"})
         }

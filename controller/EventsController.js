@@ -1,11 +1,14 @@
 import Events from "../models/Events.js";
-import Event from "../models/Events.js";
 
+//functionalities checked 8.4 createvent,edit,delete,acceptInvite,countingattendees
 //create an event
 export const createEvent=async(req,res)=>{
     try {
-        //console.log("Incoming request of event",req.body);
+        // console.log(">>> Incoming Event Request");
+        // console.log("Headers:", req.headers);
+        // console.log("Body:", req.body);
         //reminder to use req.query when testing using postmate
+        //format YYYY-MM-DDT15:00:00Z
         const{eventname,email,dateAndTime,location,description,rsvpdate,members}=req.body;
         if(!eventname){
             return res.status(400).json({message:"Please Name your event"})
@@ -23,12 +26,12 @@ export const createEvent=async(req,res)=>{
             return res.status(400).json({message:"Please enter location of event"})
         }
         if(!description){
-            return res.status(400).json({message:"Add any other information your guests might need"})
+            return res.status(400).json({message:"Add description of any other information your guests might need"})
         }
         if(!rsvpdate){
             return res.status(400).json({message:"Provide date by which attendees have to register s'il vouz plait"})
         }
-        const newEvent=new Event({
+        const newEvent=new Events({
             eventname,
             email,
             dateAndTime,
@@ -40,13 +43,16 @@ export const createEvent=async(req,res)=>{
             }
         })
         await newEvent.save()
-        
+
         res.status(200).json({message:"Event Created",event:newEvent});
     } catch (error) {
-        console.error("Error:",error);
-        res.status(500).json({message:"Internal server Error"});
+        console.error("Error occurred in createEvent:", error.message);
+        console.error("Full error stack:", error.stack);
+        res.status(500).json({
+            message: "Internal server Error 51",
+            error: error.message // Remove this in production
+        });
     }
-
 };
 //creator edit capabilities of event
 export const editFunction=async(req,res)=>{
@@ -83,7 +89,7 @@ export const editFunction=async(req,res)=>{
 //add members
     } catch (error){
      console.error("Error:",error);
-     res.status(500).json({message:"Internal server Error"});
+     res.status(500).json({message:"Internal server Error 91"});
     }
 }
 
@@ -91,14 +97,14 @@ export const editFunction=async(req,res)=>{
 export const deleteEvent=async(req,res)=>{
     try { 
         const {id}=req.params
-        const deleteEvent=await Event.findByIdAndDelete(id)
+        const deleteEvent=await Events.findByIdAndDelete(id)
     if(!deleteEvent){
         return res.status(400).json({message:"Event was not found"})
     }
     res.status(200).json({message:"Event successfully deleted"});
     } catch(error){
     console.error("Error:",error);
-    res.status(500).json({message:"Internal server Error"});    
+    res.status(500).json({message:"Internal server Error 106"});    
     }
 }
 
@@ -108,9 +114,13 @@ export const acceptInvite=async(req,res)=>{
     try{
         //maybe have to change id of event to user's email when connecting with frontend
         const {id}=req.params
-        const {members}   =req.body
-        const editInvites=await Event.findByIdAndUpdate(id,{members:{
+        const {members}=req.body
+        if(!members){
+            return res.status(400).json({message:"please add email and true or false for attending 124"})}
+        const editInvites=await Events.findByIdAndUpdate(id,{members:{
                 emails: members?.emails||[],
+                //boolean type for attending
+                //the "new" below is stating that it is a new doc not a true boolean
                 attending: members?.attending||[]}},{new:true})
     res.status(200).json({message:"Event was accepted",events:editInvites});
     }catch(error){
@@ -119,15 +129,20 @@ export const acceptInvite=async(req,res)=>{
     }
 }
 
-export const countingAttendees=async(req,res)=>{
-    try {
-        const total=await Event.countDocuments({'members.attending':true})
-        res.json({totalAttendance:total})
-    } catch (error) {console.error("Error",error);
-    res.status(500).json({message:"couldnt count attendees:"});
-        
+export const countingAttendees = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const event = await Events.findById(id);
+    if (!event) {
+      return res.status(404).json({ message: "Event not found" });
     }
-}
+    const count = event.members.attending.filter(attend => attend === true).length;
+    res.json({ totalAttendance: count });
+  } catch (error) {
+    console.error("Error", error);
+    res.status(500).json({ message: "couldn't count attendees" });
+  }
+};
 //email 
 //add more invites
 //rsvp
