@@ -6,6 +6,9 @@ export default function UserProfile () {
     return (
         <div>
             <NavBar/>
+            <div>
+                
+            </div>
         </div>
         
     );
