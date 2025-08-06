@@ -3,7 +3,8 @@ import { useNavigate } from "react-router-dom";
 import Grid from '@mui/material/Grid';
 import WelcomeBlock from "../components/WelcomeBlock";
 
-
+// for the backend connection test
+import React, { useEffect, useState } from 'react';
 
 
 function LandingPage() {
@@ -15,9 +16,19 @@ function LandingPage() {
     nav(path);
   };
 
+// for the backend connection test
+  const [message, setMessage] = useState('');
+  useEffect(() => {
+    fetch('http://localhost:4000/api/hello')
+      .then(res => res.json())
+      .then(data => setMessage(data.message))
+      .catch(err => console.error(err));
+    }, []);
+//
   return (
 
     <div>
+      <h1>{message}</h1>
       {/* //Welcome text
       //logo (crab emoji for now) 🦀🦀🦀🦀🦀🦀
       //short sentence about the app: like "Plan your next potluck with ease"

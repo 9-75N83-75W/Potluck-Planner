@@ -28,9 +28,24 @@ export const createUser=async(req,res)=>{
         if (!password){
             return res.status(400).json({message:"Password is required"})
         }
-        if (!allergies){
-            return res.status(400).json({message:"Allergy must be filled out"})
+        // if (!allergies){
+        //     return res.status(400).json({message:"Allergy must be filled out"})
+        // }
+        // if (allergies == null || typeof allergies !== 'object') {
+        //     return res.status(400).json({message:"Allergies must be an object, or left empty"})
+        // }
+        let parsedAllergies = {};
+
+        if (allergies && typeof allergies === 'string') {
+            try {
+                parsedAllergies = JSON.parse(allergies);
+            } catch (err) {
+                console.warn("Could not parse allergies, ignoring.");
+            }
+        } else if (typeof allergies === 'object' && allergies !== null) {
+        parsedAllergies = allergies;
         }
+
 console.log(name,email,phone,password,allergies);
         const normalizedEmail=email.trim().toLowerCase()    
         const newUser=new User({
@@ -38,13 +53,22 @@ console.log(name,email,phone,password,allergies);
             email:normalizedEmail,
             phone,
             password,
-            profileImage:req.file.buffer,
-            allergies:{
-                AirborneAllergy: allergies?.AirborneAllergy||[],
-                DietaryAllergy: allergies?.DietaryAllergy||[],
-                DietaryRestrictions: allergies?.DietaryRestrictions||[],
-                Preferences: allergies?.Preferences||[],
-                NoAllergy: allergies?.NoAllergy||[]
+            // profileImage:req.file.buffer,
+            profileImage: req.file?.buffer || null,
+            // allergies:{
+            //     AirborneAllergy: allergies?.AirborneAllergy||[],
+            //     DietaryAllergy: allergies?.DietaryAllergy||[],
+            //     DietaryRestrictions: allergies?.DietaryRestrictions||[],
+            //     Preferences: allergies?.Preferences||[],
+            //     NoAllergy: allergies?.NoAllergy||[]
+            // }
+            allergies: {
+                AirborneAllergy: parsedAllergies.AirborneAllergy || [],
+                DietaryAllergy: parsedAllergies.DietaryAllergy || [],
+                DietaryRestrictions: parsedAllergies.DietaryRestrictions || [],
+                Preferences: parsedAllergies.Preferences || [],
+                NoAllergy: parsedAllergies.NoAllergy || []
+
             }
         });
         await newUser.save()
@@ -52,13 +76,13 @@ console.log(name,email,phone,password,allergies);
         res.status(200).json({message:"User Created",user:newUser});
     } catch (error) {
         console.error("Error:", error);
-        res.status(500).json({message:"Internal server Error"});
+        res.status(500).json({message:"Internal server Error it's on line 58!"});
 
         
     }
 };
 
-//getting all back end users
+//getting all backend users
 export const getAllUser=async(req,res)=>{
     try {
         const users=await User.find({})

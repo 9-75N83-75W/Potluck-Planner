@@ -35,12 +35,8 @@ function CreateUser() {
         <h1>Create an account.</h1>
 
         <div>
-          <CreateUserForm></CreateUserForm>
+          <CreateUserForm/>
         </div>
-        <div>
-          <button> Create Account. </button>
-        </div>
-
         <div>
           <h2>Already have an account? Login here. ⬇️ </h2>
           <button onClick={() => navigate('/SignIn')}>Sign In</button>
