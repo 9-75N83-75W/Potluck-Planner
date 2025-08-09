@@ -29,7 +29,7 @@ router.put('/updateEvent/:id',editFunction);
 router.delete('/deleteEvent/:id',deleteEvent);
 
 //all routes for recipes
-router.post('/createmountain',createRecipe);
+router.post('/createRecipe',createRecipe);
 
 router.put('/updateRecipe/:id',editRecipes);
 
