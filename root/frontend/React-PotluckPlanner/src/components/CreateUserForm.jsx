@@ -1,76 +1,84 @@
 //imports
+import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 //materialUI imports
-import { Stack, TextField } from "@mui/material";
+import { TextField } from "@mui/material";
 import Box from '@mui/material/Box';
 
  
 export default function CreateUserForm() {
+
+    // to redirect new user to UserProfile to add allergies / finish setting up profile
+    const navigate = useNavigate();
+
+    // Form State
     const [formData, setFormData] = useState({
         name: "",
         email: "",
         phone: "",
         password: "",
-        // allergies: {
-        //   AirborneAllergy: [],
-        //   DietaryAllergy: [],
-        //   DietaryRestrictions: [],
-        //   Preferences: [],
-        //   NoAllergy: [],
-        // },
+        confirmpassword: ""
       });
 
-      const handleChange = (e) => {
-        const { name, value } = e.target;
-        
-        setFormData((prev) => ({
-          ...prev,
-          [name]: value,
-        }));
-      };
+    // For loading state while createUser request is being processed
+    const [loading, setLoading] = useState(false);
 
-      const handleSubmit = async (e) => {
-        e.preventDefault();
+    const handleChange = (e) => {
+      const { name, value } = e.target;
+      setFormData((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
+    };
     
-        try {
-          const response = await fetch("http://localhost:4000/api/createUser", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(formData),
-          });
+    // Handle form submit
+    const handleSubmit = async (e) => {
+      e.preventDefault();
+
+      if (formData.password !== formData.confirmpassword) {
+        alert("Passwords do not match.");
+        return;
+      }
+
+      setLoading(true);
     
-          const data = await response.json();
-          if (response.ok) {
-            alert("User created successfully!");
-            console.log(data.user); // optional
-          } else {
-            alert(data.message);
-          }
+      try {
+        const response = await fetch("http://localhost:4000/api/createUser", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+
+          // Only sending fields backend is expecting
+          body: JSON.stringify({
+            name: formData.name,
+            email: formData.email,
+            phone: formData.phone,
+            password: formData.password
+          }),
+        });
+    
+        const data = await response.json();
+        if (response.ok) {
+          alert("User created successfully!");
+          console.log(data.user); // optional
+          localStorage.setItem("userEmail", data.user.email);
+          navigate("/SetupProfile");
+        } else {
+          alert(data.message);
+        }
         } catch (err) {
           console.error("Error:", err);
           alert("Something went wrong.");
+        } finally {
+          setLoading(false);
         }
-      };
+    };
 
     return (
         <div>
             <>
             <Box sx={{ width: 300}}>
-                {/* <Stack
-                    margin="30px"
-                    spacing={{ xs: 1, sm: 2 }}
-                    direction="row"
-                    useFlexGap
-                    sx={{ flexWrap: 'wrap' }}>
-                        <TextField required id="standard-required" label="Name." variant="standard" />
-                        <TextField required id="standard-required" label="Phone." variant="standard" />
-                        <TextField required id="standard-required" label="Email." variant="standard" />
-                        <TextField required id="standard-required" label="Password." variant="standard" />
-                        <TextField required id="standard-required" label="Confirm Password." variant="standard" />
-
-                </Stack> */}
                 <Box component="form" onSubmit={handleSubmit} sx={{ display: "flex", flexDirection: "column", gap: 2, width: "100%", maxWidth: 400 }}>
                     <TextField
                         required
@@ -101,27 +109,19 @@ export default function CreateUserForm() {
                         value={formData.password}
                         onChange={handleChange}
                     />
-                    {/* <TextField
-                        // required
-                        label="Allergies"
-                        name="allergies"
-                        value={formData.allergies}
+                    <TextField
+                        required
+                        label="Confirm Password"
+                        name="confirmpassword"
+                        type="password"
+                        value={formData.confirmpassword}
                         onChange={handleChange}
-                    /> */}
+                    />
 
-                    {/* Optional allergy fields can be added later */}
-
-                    <button variant="contained" type="submit">
-                        Create Account
+                    <button variant="contained" type="submit" disabled={loading}>
+                        {loading ? "Creating..." : "Create Account"}
                     </button>
                 </Box>
-                {/* <div
-                    margin="30px"
-                    justify-content="center">
-                    <button>
-                        Create Account.
-                    </button>
-                </div> */}
             </Box>
         </>
         </div>

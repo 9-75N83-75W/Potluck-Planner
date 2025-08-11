@@ -1,76 +1,125 @@
 import * as React from 'react';
-import Backdrop from '@mui/material/Backdrop';
-import Box from '@mui/material/Box';
-import Modal from '@mui/material/Modal';
-import Fade from '@mui/material/Fade';
+import { useState } from "react";
+import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { TextField } from '@mui/material';
-import Stack from '@mui/material/Stack';
+import { Backdrop, Box, Modal, Fade, TextField, Stack } from '@mui/material';
 
-const style = {
-  position: 'absolute',
-  top: '50%',
-  left: '50%',
-  transform: 'translate(-50%, -50%)',
-  width: 400,
-  bgcolor: 'background.paper',
-  border: '2px solid #000',
-  boxShadow: 24,
-  p: 4,
-};
+const style = {position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: 400, bgcolor: 'background.paper', border: '2px solid #000', boxShadow: 24, p: 4};
 
-export default function NewEventForm() {
-  const [open, setOpen] = React.useState(false);
-  const handleOpen = () => setOpen(true);
-  const handleClose = () => setOpen(false);
+export default function NewEventForm({ open, onClose}) {
 
-  const nav = useNavigate();
+  const [eventName, setEventName] = useState("");
+  const [date, setDate] = useState("");
+  const [time, setTime] = useState("");
+  const [location, setLocation] = useState("");
+  const [description, setDescription] = useState("");
+  const [rsvpDate, setRsvpDate] = useState("");
+  const [invitees, setInvitees] = useState("");
 
-    // Navigation with 'path' variable passed
-    const navigate= (path)=> {
-      nav(path);
-    };
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    try {
+      const email = localStorage.getItem("userEmail"); // Host's email
+
+      // Combine date and time into ISO format for backend
+      const dateTime = new Date(`${date}T${time}`).toISOString();
+
+      const emailsArray = invitees.split(",").map(email => email.trim()).filter(email => email.length > 0);
+
+      const response = await axios.post("http://localhost:4000/api/createEvent", {
+        eventName,
+        email,
+        dateTime,
+        location,
+        description,
+        rsvpDate,
+        members : {
+          emails: emailsArray
+        }
+      });
+
+      console.log("Event created:", response.data);
+      onClose(); // CLose modal
+    } catch (err) {
+      console.error("Error creating event:", err.response?.data || err.message);
+    }
+  };
 
   return (
+
     <div>
-      <button onClick={handleOpen}>New Event.</button>
-      <Modal
-        aria-labelledby="transition-modal-title"
-        aria-describedby="transition-modal-description"
-        open={open}
-        onClose={handleClose}
-        closeAfterTransition
-        slots={{ backdrop: Backdrop }}
-        slotProps={{
-          backdrop: {
-            timeout: 500,
-          },
-        }}
-      >
-        <Fade in={open}>
-          <Box sx={style}>
-            <p>Include New Event Details Here.</p>
-            <Box>
-                    <Stack
-                        margin="20px"
-                        padding={6}
-                        spacing={{ xs: 1, sm: 2 }}
-                        direction="row"
-                        useFlexGap
-                        sx={{ flexWrap: 'wrap' }}>
-                            <TextField required id="standard-required" label="Event Name." variant="standard" />
-                            <TextField required id="standard-required" label="Date" variant="standard" />
-                            <TextField required id="standard-required" label="Location" variant="standard" />
-                    </Stack>
-            </Box>
-            <button
-                onClick={() => navigate("/Event")}
-            >
-                Create New Event.
-            </button>
-          </Box>
-        </Fade>
+      <Modal open={open} onClose={onClose}>
+        <Box sx={{position:"absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", width: 400, bgcolor: "background.paper", p: 4, boxShadow: 24, borderRadius: 2, }}>
+          
+          <h2> Create a new event. </h2>
+
+          <form onSubmit={handleSubmit}>
+
+            <Stack spacing={2}>
+
+              <TextField
+                label = "Event Name"
+                value = {eventName}
+                onChange = {(e) => setEventName(e.target.value)}
+                required
+              />
+              <TextField
+                type = "date"
+                label = "Date"
+                InputLabelProps = {{ shrink: true}}
+                value = {date}
+                onChange = {(e) => setDate(e.target.value)}
+                required
+              />
+              <TextField
+                type = "time"
+                label = "Time"
+                InputLabelProps = {{ shrink: true}}
+                value = {time}
+                onChange = {(e) => setTime(e.target.value)}
+                required
+              />
+              <TextField
+                label = "Location"
+                value = {location}
+                onChange = {(e) => setLocation(e.target.value)}
+                required
+              />
+              <TextField
+                label = "Description"
+                multiline
+                rows = {3}
+                value = {description}
+                onChange = {(e) => setDescription(e.target.value)}
+                required
+              />
+              <TextField
+                type ="date"
+                label = "RSVP By"
+                InputLabelProps = {{ shrink: true }}
+                value = {rsvpDate}
+                onChange = {(e) => setRsvpDate(e.target.value)}
+                required
+              />
+              <TextField
+                label = "Invitees Emails"
+                value = {invitees}
+                onChange= {(e) => setInvitees(e.target.value)}
+                placeholder = 'e.g. alice@example.com, john@example.com, jack@example.com'
+                helperText = "Note: Please seperate by commas."
+              />
+
+              <button type="submit">
+                Create Event
+              </button>
+
+            </Stack>
+          </form>
+
+        </Box>
       </Modal>
     </div>
+
   );
 }

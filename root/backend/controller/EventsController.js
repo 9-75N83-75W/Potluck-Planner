@@ -9,8 +9,8 @@ export const createEvent=async(req,res)=>{
         // console.log("Body:", req.body);
         //reminder to use req.query when testing using postmate
         //format YYYY-MM-DDT15:00:00Z
-        const{eventname,email,dateAndTime,location,description,rsvpdate,members}=req.body;
-        if(!eventname){
+        const{eventName,email,dateTime,location,description,rsvpDate,members}=req.body;
+        if(!eventName){
             return res.status(400).json({message:"Please Name your event"})
         }
         //in the frontend pull email from UserController.js in function specificUser
@@ -19,7 +19,7 @@ export const createEvent=async(req,res)=>{
         if(!email){
             return res.status(400).json({message:"Please enter your email"})
         }
-        if(!dateAndTime){
+        if(!dateTime){
             return res.status(400).json({message:"Please enter date of event"})
         }
         if(!location){
@@ -28,16 +28,16 @@ export const createEvent=async(req,res)=>{
         if(!description){
             return res.status(400).json({message:"Add description of any other information your guests might need"})
         }
-        if(!rsvpdate){
+        if(!rsvpDate){
             return res.status(400).json({message:"Provide date by which attendees have to register s'il vouz plait"})
         }
         const newEvent=new Events({
-            eventname,
+            eventName,
             email,
-            dateAndTime,
+            dateTime,
             location,
             description,
-            rsvpdate,
+            rsvpDate,
             members:{
                 emails: members?.emails||[]
             }
@@ -58,14 +58,14 @@ export const createEvent=async(req,res)=>{
 export const editFunction=async(req,res)=>{
     try { 
         const {id}=req.params
-        const{eventname,email,dateAndTime,location,description,rsvpdate,members}=req.body;
-        if(!eventname){
+        const{eventName,email,dateTime,location,description,rsvpDate,members}=req.body;
+        if(!eventName){
             return res.status(400).json({message:"Please Name your event"})
         }
         if(!email){
             return res.status(400).json({message:"Please enter your email"})
         }
-        if(!dateAndTime){
+        if(!dateTime){
             return res.status(400).json({message:"Please enter date of event"})
         }
         if(!location){
@@ -74,11 +74,11 @@ export const editFunction=async(req,res)=>{
         if(!description){
             return res.status(400).json({message:"Add any other information your guests might need"})
         }
-        if(!rsvpdate){
+        if(!rsvpDate){
             return res.status(400).json({message:"Provide date by which attendees have to register s'il vouz plait"})
         }
         const updateEvent=await Events.findByIdAndUpdate(
-            id,{eventname,dateAndTime,location,description,rsvpdate,members:{
+            id,{eventName,dateTime,location,description,rsvpDate,members:{
                 emails: members?.emails||[]
             }},{new:true}
         )
@@ -147,4 +147,60 @@ export const countingAttendees = async (req, res) => {
 //add more invites
 //rsvp
 //recipes
+// Short Term Fix for Ivitations functionality
+export const getInvitedEventsByEmail = async (req, res) => {
+    try {
+      const email = req.query.email;
+      if (!email) {
+        return res.status(400).json({ message: "Email query parameter is required" });
+      }
+  
+      // Find events where this email is in members.emails
+      // and (optionally) has not accepted yet
+      const invitedEvents = await Events.find({
+        'members.emails': email,
+        // if you track RSVP status, you can filter here, e.g. attending not true
+        // 'members.attending': { $ne: true }  <-- depends on your data structure
+      });
+  
+      res.status(200).json({ invitedEvents });
+    } catch (error) {
+      console.error("Error fetching invited events:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  };
 
+// get event by id, with host vs invited status
+export const getEventById = async (req, res) => {
+    try {
+      const { id } = req.params;
+      const userEmail = req.query.email; // frontend passes ?email=user@example.com
+  
+      if (!id) {
+        return res.status(400).json({ message: "Event ID is required" });
+      }
+  
+      const event = await Events.findById(id);
+      if (!event) {
+        return res.status(404).json({ message: "Event not found" });
+      }
+  
+      // Determine role
+      let role = "guest";
+      if (userEmail) {
+        if (event.email === userEmail) {
+          role = "host";
+        } else if (event.members?.emails?.some(m => m.email === userEmail)) {
+          role = "invited";
+        }
+      }
+  
+      res.status(200).json({
+        event,
+        role
+      });
+    } catch (error) {
+      console.error("Error fetching event:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  };

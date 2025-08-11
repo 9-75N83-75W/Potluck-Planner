@@ -1,6 +1,6 @@
 // imports for components
 import { useNavigate } from "react-router-dom";
-import { Box} from "@mui/material";
+import { Box } from "@mui/material";
 import SignInForm from "../components/SignInForm";
 
 export default function SignIn() {
@@ -45,11 +45,11 @@ export default function SignIn() {
 
       <div>
 
-      <button
+      {/* <button
         onClick={() => navigate("/Dashboard")}
       > 
         Sign In
-      </button>
+      </button> */}
       </div>
 
       <div>

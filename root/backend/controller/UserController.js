@@ -2,6 +2,7 @@
 import User from "../models/User.js";
 //is multer causing and issue? make sure to run the command npm i multer in terminal first.
 import multer from "multer";
+import mongoose from "mongoose";
 
 //profile pic
 const storage =multer.memoryStorage();
@@ -47,6 +48,7 @@ export const createUser=async(req,res)=>{
         }
 
 console.log(name,email,phone,password,allergies);
+console.log(mongoose.connection.readyState)
         const normalizedEmail=email.trim().toLowerCase()    
         const newUser=new User({
             name:String(name),
@@ -76,7 +78,8 @@ console.log(name,email,phone,password,allergies);
         res.status(200).json({message:"User Created",user:newUser});
     } catch (error) {
         console.error("Error:", error);
-        res.status(500).json({message:"Internal server Error it's on line 58!"});
+        // 400 error not 500 -> (connection error)
+        res.status(400).json({message:`Error: ${error}`});
 
         
     }
@@ -99,7 +102,7 @@ export const getAllUser=async(req,res)=>{
 export const specificUser=async(req,res)=>{
     try {
         //.body when execusting .query using postman
-        const {email,password}=req.body ;
+        const {email,password}=req.query ;
         if (!email){
             return res.status(400).json({message:"Email is required"})
         }
@@ -119,7 +122,7 @@ export const specificUser=async(req,res)=>{
     } 
     catch (error) {
         console.error("Error", error);
-        res.status(500).json({message:"Interal Server Error"})
+        res.status(500).json({message:`Error: ${error}`})
     }
 }
 
@@ -142,9 +145,48 @@ export const forgetPassword=async(req,res)=>{
         res.status(200).json({message:"Password changed"})
     } catch (error) {
         console.error("Error", error);
-        res.status(500).json({message:"Interal Server Error"})
+        res.status(500).json({message:`Error: ${error}`})
     }
 }
+
+export const updateAllergies = async (req, res) => {
+  try {
+    const { email, allergies } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ message: "Email is required" });
+    }
+
+    if (!allergies || typeof allergies !== "object") {
+      return res.status(400).json({ message: "Allergies data is required and must be an object" });
+    }
+
+    // Normalize email
+    const normalizedEmail = email.trim().toLowerCase();
+
+    // Find user by email
+    const user = await User.findOne({ email: normalizedEmail });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Update allergies fields (make sure your User model has this schema)
+    user.allergies = {
+      AirborneAllergy: allergies.AirborneAllergy || [],
+      DietaryAllergy: allergies.DietaryAllergy || [],
+      DietaryRestrictions: allergies.DietaryRestrictions || [],
+      Preferences: allergies.Preferences || [],
+      NoAllergy: allergies.NoAllergy || []
+    };
+
+    await user.save();
+
+    return res.status(200).json({ message: "Allergies updated successfully", allergies: user.allergies });
+  } catch (error) {
+    console.error("Error updating allergies:", error);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+};
 
 //profile pic
 // export const Profilepic = async (req: MulterRequest, res: Response) => {

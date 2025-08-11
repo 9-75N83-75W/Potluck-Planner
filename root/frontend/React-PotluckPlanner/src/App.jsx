@@ -8,6 +8,7 @@ import SignIn from './pages/SignIn';
 import Dashboard from "./pages/Dashboard"
 import UserProfile from "./pages/UserProfile"
 import Event from './pages/Event';
+import SetupProfile from './pages/SetupProfile';
 
 
 function App() {
@@ -15,12 +16,14 @@ function App() {
 
     <BrowserRouter>
     <Routes>
-      <Route path="/" element={<LandingPage/>} />
+      <Route path='/' element={<LandingPage/>} />
       <Route path='/CreateAccount' element={<CreateUser/>}/>
       <Route path='/SignIn' element={<SignIn/>}/>
-      <Route path="/Dashboard" element={<Dashboard/>}/>
-      <Route path="/Preferences" element={<UserProfile/>}/>
-      <Route path="/Event" element={<Event/>}/>
+      <Route path='/Dashboard' element={<Dashboard/>}/>
+      <Route path='/SetupProfile' element={<SetupProfile/>}/>
+      <Route path='/Preferences' element={<UserProfile/>}/>
+      <Route path='/Event' element={<Event/>}/>
+      <Route path="/Event/:id" element={<Event />} />
 
 
     </Routes>
