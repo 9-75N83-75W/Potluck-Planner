@@ -79,3 +79,15 @@ export const deleteRecipes=async(req,res)=>{
     res.status(500).json({message:"Internal server Error"});
     }
 }
+
+//------------------------------------------------------------------------------------
+// SHORT TERM FIXES
+export const getAllRecipes = async (req, res) => {
+    try {
+      const recipes = await Recipes.find(); // Fetch all recipes
+      res.status(200).json(recipes);
+    } catch (error) {
+      console.error("Error fetching recipes:", error);
+      res.status(500).json({ message: "Internal Server Error" });
+    }
+  };

@@ -4,9 +4,9 @@ import multer from 'multer';
 //users
 import { createUser, getAllUser, specificUser, forgetPassword, updateAllergies } from '../controller/UserController.js';
 //events and invite
-import { createEvent,deleteEvent,editFunction,acceptInvite,countingAttendees, getEventById } from '../controller/EventsController.js';
+import { createEvent,deleteEvent,editFunction,acceptInviteNew,countingAttendees, getEventById, getInvitedEventsByEmail, getUserEvents} from '../controller/EventsController.js';
 //recipes
-import { createRecipe,deleteRecipes,editRecipes } from '../controller/RecipesController.js';
+import { createRecipe,deleteRecipes,editRecipes, getAllRecipes} from '../controller/RecipesController.js';
 
 const storage=multer.memoryStorage();
 const upload=multer({storage})
@@ -33,32 +33,28 @@ router.delete('/deleteEvent/:id',deleteEvent);
 router.get('/Event/:id', getEventById);
 
 //all routes for recipes
-router.post('/createmountain',createRecipe);
+router.post('/createRecipe',createRecipe);
 
 router.put('/updateRecipe/:id',editRecipes);
 
 router.delete('/deleteRecipe/:id',deleteRecipes);
 
 //invites
-router.put('/inviteEvent/:id',acceptInvite);
+//router.get('/inviteEvent/:id',acceptInvite);
 
 router.get('/attendees/:id',countingAttendees);
 
+//----------------------------------------------------------------------------------------------------------------------------------------------------------
 // Short Term Fixes Routes
 // add this GET route for invitations:
-// router.get('/events/invited', getInvitedEventsByEmail);
+router.get('/events/invited', getInvitedEventsByEmail);
+//invites
+router.put('/inviteEvent/:id',acceptInviteNew);
 
-// router.get("/Event/", async (req, res) => {
-//     try {
-//       const event = await event.findById(req.params.id);
-//       if (!event) {
-//         return res.status(404).json({ message: "Event not found" });
-//       }
-//       res.json({ event });
-//     } catch (error) {
-//       console.error("Error fetching event:", error);
-//       res.status(500).json({ message: "Server error" });
-//     }
-//   });
+// GET all recipes
+router.get("/recipesAll", getAllRecipes);
+
+router.get("/userEvents", getUserEvents);
+
 
 export default router;

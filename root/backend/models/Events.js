@@ -11,10 +11,20 @@ const EventsSchema=new mongoose.Schema({
     description:{type:String,},
     rsvpDate:{type:Date,},
     totalAttendance:{type:Number},
+    // this needs*** to be altered for future, the index mismatching would throw the whole thing off
     members:{
         emails:{type:[String]},
         attending:{type:[Boolean]}
     }
+    // // MEMBERS NEW
+    // members: {
+    //     invited: [
+    //       {
+    //         email: { type: String },
+    //         attending: { type: Boolean }
+    //       }
+    //     ]
+    //   }
 
     //confirm RSVP date before 
     //recipe

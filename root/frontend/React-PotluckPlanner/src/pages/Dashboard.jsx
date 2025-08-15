@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import NavBar from "../components/NavBar";
 import NewEventForm from "../components/NewEventForm";
 import Invitations from "../components/Invitations"
+import AllEvents from "../components/AllEvents";
 //import SideBar from "../atoms/SideBar";
 
 export default function Dashboard() {
@@ -35,6 +36,9 @@ export default function Dashboard() {
             </div>
             <div>
                 <Invitations/>
+            </div>
+            <div>
+                <AllEvents/>
             </div>
         </div>
         // <div>
