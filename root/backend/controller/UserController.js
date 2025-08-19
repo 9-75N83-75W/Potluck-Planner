@@ -1,11 +1,16 @@
-//import User from "../models/User.js";
 import User from "../models/User.js";
-//is multer causing and issue? make sure to run the command npm i multer in terminal first.
+//is multer causing an issue? make sure to run the command npm i multer in terminal first.
 import multer from "multer";
 import mongoose from "mongoose";
 
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+
+import "dotenv/config"
+import { generateToken } from "../middleware/authMiddleware.js";
+
 //profile pic
-const storage =multer.memoryStorage();
+const storage = multer.memoryStorage();
 const upload = multer({ storage });
 export default upload;
 
@@ -49,12 +54,18 @@ export const createUser=async(req,res)=>{
 
 console.log(name,email,phone,password,allergies);
 console.log(mongoose.connection.readyState)
+
+        // normalized email
         const normalizedEmail=email.trim().toLowerCase()    
+
+        // hashed password
+        const hashedPassword = await bcrypt.hash(password, 10);
+
         const newUser=new User({
             name:String(name),
             email:normalizedEmail,
             phone,
-            password,
+            password: hashedPassword,
             // profileImage:req.file.buffer,
             profileImage: req.file?.buffer || null,
             // allergies:{
@@ -70,7 +81,6 @@ console.log(mongoose.connection.readyState)
                 DietaryRestrictions: parsedAllergies.DietaryRestrictions || [],
                 Preferences: parsedAllergies.Preferences || [],
                 NoAllergy: parsedAllergies.NoAllergy || []
-
             }
         });
         await newUser.save()
@@ -79,9 +89,7 @@ console.log(mongoose.connection.readyState)
     } catch (error) {
         console.error("Error:", error);
         // 400 error not 500 -> (connection error)
-        res.status(400).json({message:`Error: ${error}`});
-
-        
+        res.status(400).json({message:`Error: ${error}`});   
     }
 };
 
@@ -101,34 +109,85 @@ export const getAllUser=async(req,res)=>{
 //logging in
 export const specificUser=async(req,res)=>{
     try {
-        //.body when execusting .query using postman
-        const {email,password}=req.query ;
+        //.body when executing .query using postman
+        const {email,password}=req.body;
         if (!email){
-            return res.status(400).json({message:"Email is required"})
+            return res.status(400).json({ message:"Email is required" })
         }
         if (!password){
-            return res.status(400).json({message:"Password is required"})
+            return res.status(400).json({ message:"Password is required" })
         }
+
         const normalizedEmail=email.trim().toLowerCase()
-        const existingUser=await User.findOne({email:normalizedEmail})
+        const existingUser=await User.findOne({ email: normalizedEmail })
         if(!existingUser){
-            return res.status(404).json({message:"User not found"});
+            return res.status(404).json({ message:"User not found" });
         }
-        if(existingUser.password!=password){
-            return res.status(400).json({message:"Password is incorrect"})
+        console.log(password, existingUser.password)
+        const validPassword = await bcrypt.compare(password, existingUser.password);
+        if(!validPassword){
+            return res.status(400).json({ message:"Password is incorrect" })
         }
-        return res.status(200).json({message:"Log-In Successful",existingUser});
+        // console.log("hi token", process.env.JWT_SECRET)
         
-    } 
-    catch (error) {
+        // issue JWT
+        const accessToken = generateToken(res, existingUser.email)
+        // const refreshToken = jwt.sign(
+        //     { email: existingUser.email },
+        //     process.env.REFRESH_TOKEN_SECRET
+        // )
+
+        // existingUser.refreshToken = refreshToken;
+        await existingUser.save()
+
+        return res.status(200).json({
+            message:"Log-In Successful",
+            accessToken,
+            // refreshToken,
+            User: { email: existingUser.email }
+        });
+    }   catch (error) {
         console.error("Error", error);
         res.status(500).json({message:`Error: ${error}`})
     }
 }
 
+// export async function refreshToken(req, res) {
+//     const { token } = req.body
+//     if (!token) return res.status(400).json({ message: "Refresh token required" })
+
+//     const user = await User.findOne({ refreshToken: token })
+//     if (!user) return res.status(400).json({ message: "Invalid refresh token" })
+
+//     jwt.verify(token, process.env.REFRESH_TOKEN_SECRET, (err, decodedUser) => {
+//         if (err) return res.status(400)
+
+//         const accessToken = jwt.sign(
+//             { email: decodedUser.email },
+//             process.env.ACCESS_TOKEN_SECRET,
+//             { expiresIn: "15m" }
+//         )
+
+//         res.status(200).json({ accessToken })
+//     })
+// }
+
+// logout
+export async function logoutUser(req, res) {
+    const { token } = req.body;
+  const user = await User.findOne({ refreshToken: token });
+
+  if (!user) return res.status(400);
+
+  user.refreshToken = null;
+  await user.save();
+
+  res.status(200).json({ message: "Logged out" });
+}
+
 export const forgetPassword=async(req,res)=>{
     try { 
-        const {email,password}=req.body;
+        const {email,password}=req.body;        //should this be .query??
         if (!email){
             return res.status(400).json({message:"Email is required"})
         }
@@ -136,12 +195,14 @@ export const forgetPassword=async(req,res)=>{
             return res.status(400).json({message:"Password is required"})
         }
         const normalizedEmail=email.trim().toLowerCase()
-        const existingUser=await User.findOne({email:normalizedEmail})
+        const existingUser=await User.findOne({ email: normalizedEmail })
         if(!existingUser){
             return res.status(404).json({message:"User not found"});
         }
-        existingUser.password=password;
+        const hashedPassword = await bcrypt.hash(password, 10)
+        existingUser.password=hashedPassword;
         await existingUser.save()
+
         res.status(200).json({message:"Password changed"})
     } catch (error) {
         console.error("Error", error);

@@ -2,17 +2,21 @@ import express from 'express';
 import cors from 'cors';
 import mongoose from 'mongoose';
 import { connect } from "mongoose";
-import allroutes from './root/backend/routes/allroutes.js'
+import allroutes from './routes/allroutes.js'
 import dotenv from 'dotenv';
+import cookieParser from 'cookie-parser'
 //dotenv.config({ path: './root/backend/.env' });
 dotenv.config();
 
 const app = express();
 //Cors -> Cross origin resource sharing - since backend and frontend run on different ports
 app.use(cors({
-  origin: 'http://localhost:5173', // or 3000 if using CRA
+  origin: 'http://localhost:5173',
 })); // allow requests from React frontend
 app.use(express.json());
+app.use(cookieParser())
+// routes
+// app.use("/api", allroutes);                     // need this??
 
 const PORT = process.env.PORT || 4000;
 
@@ -20,6 +24,15 @@ const PORT = process.env.PORT || 4000;
 // app.get('/api/hello', (req, res) => {
 //   res.json({ message: 'Hello from backend!' });
 // });
+
+
+
+
+
+
+
+
+
 
 // Test route
 app.use('/api',allroutes)

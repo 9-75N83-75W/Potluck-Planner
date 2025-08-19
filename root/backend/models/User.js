@@ -14,11 +14,12 @@ const UserSchema=new mongoose.Schema({
         DietaryRestrictions:{type:[String],default:[]},
         Preferences:{type:[String],default:[]},
         NoAllergy:{type:[String],default:[]}
-        
-},
+    },
+    refreshToken: { type: String }
     //multer
 //recipes
 })
 
 
 export default mongoose.model('User',UserSchema);
+// export default User;
