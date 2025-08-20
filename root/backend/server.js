@@ -2,17 +2,19 @@ import express from 'express';
 import cors from 'cors';
 import mongoose from 'mongoose';
 import { connect } from "mongoose";
-import allroutes from './root/backend/routes/allroutes.js'
+import allroutes from './routes/allroutes.js'
 import dotenv from 'dotenv';
-//dotenv.config({ path: './root/backend/.env' });
+import cookieParser from 'cookie-parser'
+
 dotenv.config();
 
 const app = express();
 //Cors -> Cross origin resource sharing - since backend and frontend run on different ports
 app.use(cors({
-  origin: 'http://localhost:5173', // or 3000 if using CRA
+  origin: 'http://localhost:5173',
 })); // allow requests from React frontend
 app.use(express.json());
+app.use(cookieParser())
 
 const PORT = process.env.PORT || 4000;
 
@@ -22,7 +24,7 @@ const PORT = process.env.PORT || 4000;
 // });
 
 // Test route
-app.use('/api',allroutes)
+// app.use('/api',allroutes)
 // app.listen(4000, () => {
 //   console.log('Server running on http://localhost:4000');
 // });

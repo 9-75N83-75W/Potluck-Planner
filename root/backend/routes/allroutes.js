@@ -1,60 +1,97 @@
+// imports
 import express from 'express';
-import multer from 'multer';
 
-//users
-import { createUser, getAllUser, specificUser, forgetPassword, updateAllergies } from '../controller/UserController.js';
-//events and invite
-import { createEvent,deleteEvent,editFunction,acceptInviteNew,countingAttendees, getEventById, getInvitedEventsByEmail, getUserEvents} from '../controller/EventsController.js';
-//recipes
-import { createRecipe,deleteRecipes,editRecipes, getAllRecipes} from '../controller/RecipesController.js';
+// import multer from 'multer';
 
-const storage=multer.memoryStorage();
-const upload=multer({storage})
-const router=express.Router();
-  
-//all routes for user
-router.post('/createUser',upload.single('profileImage'),createUser);
+import { authenticateToken } from "../middleware/authMiddleware.js";
+// Users
+import { createUser, loginUser, logoutUser, getAllUsers, forgetPassword, updateUserFoodConstraint, getUserProfile, refreshToken } from '../controller/UserController.js';
+// Food Constraints
+import { createFoodConstraint, getAllFoodConstraints, getFoodConstraintById, updateFoodConstraint, deleteFoodConstraint } from '../controller/FoodConstraintController.js'
+// Event
+import { createEvent, getAllEvents, getEventById, updateEvent, deleteEvent, addGuest, updateGuestRSVP, assignRecipeToGuest, getInvitedEvents } from '../controller/EventController.js';
+// Recipe
+import { createRecipe, getAllRecipes, getRecipeById, updateRecipe, deleteRecipe, getRecipesByEvent, getRecipesByUser} from '../controller/RecipeController.js';
 
-router.get('/getAllUsers',getAllUser);
+// const storage=multer.memoryStorage();
+// const upload=multer({storage})
+const router = express.Router();
 
-router.get('/existingUser',specificUser);
+// USER ROUTES
+// account management
+router.post("/register", createUser);
+router.post("/login", loginUser);
+router.post("/logout", logoutUser);
 
-router.post('/forgotPassword',forgetPassword);
+// get users
+router.get("/:id", authenticateToken, getUserProfile);
+router.get("/allUsers", authenticateToken, getAllUsers);
 
-router.post('/updateAllergies', updateAllergies)
+// food constraint updates
+router.put("/:id/constraints/:category", authenticateToken, updateUserFoodConstraint);
 
-//all routes for events
-router.post('/createEvent',createEvent);
+// authentication
+router.post("/refresh", refreshToken);
 
-router.put('/updateEvent/:id',editFunction);
+// password management
+router.post("/forget_password", forgetPassword);
 
-router.delete('/deleteEvent/:id',deleteEvent);
+// router.post('/createUser',upload.single('profileImage'),createUser);
 
-router.get('/Event/:id', getEventById);
+// FOOD CONSTRAINTS ROUTES
+router.post("/createFoodConstraint", createFoodConstraint);
+router.get("/getAllFoodConstraints", getAllFoodConstraints);
+router.get("/constraints/:id", getFoodConstraintById);
 
-//all routes for recipes
-router.post('/createRecipe',createRecipe);
+router.put("/updateConstraints/:id", authenticateToken, updateFoodConstraint);
+router.delete("/deleteConstraint/:id", authenticateToken, deleteFoodConstraint);
 
-router.put('/updateRecipe/:id',editRecipes);
+// EVENT ROUTES
 
-router.delete('/deleteRecipe/:id',deleteRecipes);
+// events crud
+router.post("/createEvent", authenticateToken, createEvent);
+router.get("/allEvents", getAllEvents);
+router.get("/event/:id", getEventById);
+router.put("/:id/eventUpdate", authenticateToken, updateEvent);
+router.delete("/:id/eventDelete", authenticateToken, deleteEvent);
+router.get('/events/invited', authenticateToken, getInvitedEvents);
 
-//invites
-//router.get('/inviteEvent/:id',acceptInvite);
+// guests
+router.post("/:id/addGuests", authenticateToken, addGuest);
+router.put("/:id/guests/:guestId/status", authenticateToken, updateGuestRSVP);
 
-router.get('/attendees/:id',countingAttendees);
+// recipes
+router.put("/:id/guests/:guestId/assign-recipe", authenticateToken, assignRecipeToGuest);
+
+// RECIPE ROUTES
+// Basic Recipe CRUD
+router.post("/createRecipe", authenticateToken, createRecipe);
+router.get("/getRecipes", getAllRecipes);
+router.get("/getRecipe/:id", getRecipeById);
+router.put("/updateRecipe/:id", authenticateToken, updateRecipe);
+router.delete("/deleteRecipe/:id", authenticateToken, deleteRecipe);
+
+// Get recipes by event or user
+router.get("/by-event/:eventId", getRecipesByEvent);
+router.get("/by-user/:userId", getRecipesByUser);
+
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------
-// Short Term Fixes Routes
-// add this GET route for invitations:
-router.get('/events/invited', getInvitedEventsByEmail);
-//invites
-router.put('/inviteEvent/:id',acceptInviteNew);
+// // Short Term Fixes Routes
+// // add this GET route for invitations:
+// router.get('/events/invited', getInvitedEventsByEmail);
+// //invites
+// router.put('/inviteEvent/:id',acceptInviteNew);
 
-// GET all recipes
-router.get("/recipesAll", getAllRecipes);
+// // GET all recipes
+// router.get("/recipesAll", getAllRecipes);
 
-router.get("/userEvents", getUserEvents);
+// router.get("/userEvents", getUserEvents);
+
+// //invites
+// //router.get('/inviteEvent/:id',acceptInvite);
+
+// router.get('/attendees/:id',countingAttendees);
 
 
 export default router;

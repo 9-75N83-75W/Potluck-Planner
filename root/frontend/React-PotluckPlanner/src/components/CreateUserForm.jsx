@@ -13,11 +13,12 @@ export default function CreateUserForm() {
 
     // Form State
     const [formData, setFormData] = useState({
-        name: "",
+        firstName: "",
+        lastName: "",
         email: "",
         phone: "",
         password: "",
-        confirmpassword: ""
+        confirmPassword: ""
       });
 
     // For loading state while createUser request is being processed
@@ -35,7 +36,7 @@ export default function CreateUserForm() {
     const handleSubmit = async (e) => {
       e.preventDefault();
 
-      if (formData.password !== formData.confirmpassword) {
+      if (formData.password !== formData.confirmPassword) {
         alert("Passwords do not match.");
         return;
       }
@@ -43,7 +44,7 @@ export default function CreateUserForm() {
       setLoading(true);
     
       try {
-        const response = await fetch("http://localhost:4000/api/createUser", {
+        const response = await fetch("http://localhost:4000/api/register", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -51,7 +52,8 @@ export default function CreateUserForm() {
 
           // Only sending fields backend is expecting
           body: JSON.stringify({
-            name: formData.name,
+            firstName: formData.firstName,
+            lastName: formData.lastName,
             email: formData.email,
             phone: formData.phone,
             password: formData.password
@@ -59,11 +61,20 @@ export default function CreateUserForm() {
         });
     
         const data = await response.json();
+
         if (response.ok) {
+
+          // Store the access and refresh tokens
+          localStorage.setItem("accessToken", data.accessToken);
+          localStorage.setItem("refreshToken", data.refreshToken);
+
           alert("User created successfully!");
           console.log(data.user); // optional
-          localStorage.setItem("userEmail", data.user.email);
+
+          localStorage.setItem("userId", data.user.Id);
+
           navigate("/SetupProfile");
+
         } else {
           alert(data.message);
         }
@@ -82,9 +93,16 @@ export default function CreateUserForm() {
                 <Box component="form" onSubmit={handleSubmit} sx={{ display: "flex", flexDirection: "column", gap: 2, width: "100%", maxWidth: 400 }}>
                     <TextField
                         required
-                        label="Full Name"
-                        name="name"
-                        value={formData.name}
+                        label="First Name"
+                        name="firstName"
+                        value={formData.firstName}
+                        onChange={handleChange}
+                    />
+                    <TextField
+                        required
+                        label="Last Name"
+                        name="lastName"
+                        value={formData.lastName}
                         onChange={handleChange}
                     />
                     <TextField
@@ -112,9 +130,9 @@ export default function CreateUserForm() {
                     <TextField
                         required
                         label="Confirm Password"
-                        name="confirmpassword"
+                        name="confirmPassword"
                         type="password"
-                        value={formData.confirmpassword}
+                        value={formData.confirmPassword}
                         onChange={handleChange}
                     />
 

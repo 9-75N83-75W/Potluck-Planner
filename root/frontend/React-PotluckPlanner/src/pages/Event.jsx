@@ -165,66 +165,165 @@
 //     );
 // }
 
-//---------------------------------
+// //---------------------------------
+
+// import React, { useEffect, useState } from "react";
+// import { useParams } from "react-router-dom";
+// import Stack from "@mui/material/Stack";
+// import NavBar from "../components/NavBar";
+// import Avatar from "@mui/material/Avatar";
+// import AvatarGroup from "@mui/material/AvatarGroup";
+// import RecipesForm from "../components/RecipesForm";
+
+// export default function Event() {
+//   const { id } = useParams();
+//   const [eventData, setEventData] = useState(null);
+
+//   useEffect(() => {
+//     async function fetchEvent() {
+//       try {
+//         const res = await fetch(`http://localhost:4000/api/Event/${id}`);
+//         if (!res.ok) throw new Error(`Failed to fetch event: ${res.status}`);
+//         const data = await res.json();
+//         setEventData(data.event);
+//       } catch (error) {
+//         console.error("Error fetching event:", error);
+//       }
+//     }
+//     fetchEvent();
+//   }, [id]);
+
+//   if (!eventData) {
+//     return (
+//       <div>
+//         <NavBar />
+//         <p style={{ padding: "20px" }}>Loading event...</p>
+//       </div>
+//     );
+//   }
+
+//   return (
+//     <div>
+//       <NavBar />
+//       <div style={{ margin: "10px", padding: "10px" }}>
+//         <h1>{eventData.eventName}</h1>
+//         <Stack direction="row" alignItems="center">
+//           <h2 style={{ margin: "10px" }}># of Attendees</h2>
+//           <AvatarGroup max={4} style={{ margin: "10px" }}>
+//             {eventData.members?.emails?.map((email, index) => (
+//               <Avatar key={index} alt={email} src="/AvatarImages/CrabAvatar.webp" />
+//             ))}
+//           </AvatarGroup>
+//           <h3 style={{ margin: "10px" }}>
+//             {new Date(eventData.dateTime).toLocaleDateString()}
+//           </h3>
+//           <h3 style={{ margin: "10px" }}>{eventData.location}</h3>
+//         </Stack>
+
+//         <Stack>
+//           <h1>Recipes</h1>
+//           <RecipesForm />
+//         </Stack>
+//       </div>
+//     </div>
+//   );
+// }
 
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import Stack from "@mui/material/Stack";
+import { Stack, Avatar, AvatarGroup, Button, Typography, Paper, Box, CircularProgress } from "@mui/material";
 import NavBar from "../components/NavBar";
-import Avatar from "@mui/material/Avatar";
-import AvatarGroup from "@mui/material/AvatarGroup";
 import RecipesForm from "../components/RecipesForm";
 
 export default function Event() {
   const { id } = useParams();
   const [eventData, setEventData] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function fetchEvent() {
       try {
-        const res = await fetch(`http://localhost:4000/api/Event/${id}`);
-        if (!res.ok) throw new Error(`Failed to fetch event: ${res.status}`);
+        const res = await fetch(`http://localhost:4000/api/event/${id}`);
+        if (!res.ok) {
+          throw new Error(`Failed to fetch event: ${res.status}`);
+        }
         const data = await res.json();
-        setEventData(data.event);
+        setEventData(data); // The event data is the top-level object, not data.event
       } catch (error) {
         console.error("Error fetching event:", error);
+      } finally {
+        setLoading(false);
       }
     }
     fetchEvent();
   }, [id]);
 
+  if (loading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <CircularProgress />
+        <Typography sx={{ ml: 2 }}>Loading event...</Typography>
+      </Box>
+    );
+  }
+
   if (!eventData) {
     return (
       <div>
         <NavBar />
-        <p style={{ padding: "20px" }}>Loading event...</p>
+        <p style={{ padding: "20px" }}>Event not found.</p>
       </div>
     );
   }
 
+  // Filter for accepted guests
+  const acceptedGuests = eventData.guests.filter(guest => guest.status === "accepted");
+  
+  // Format the date and time
+  const formattedDateTime = new Date(eventData.dateTime).toLocaleString();
+
   return (
     <div>
       <NavBar />
-      <div style={{ margin: "10px", padding: "10px" }}>
+      <Paper elevation={6} sx={{ p: 3, maxWidth: 800, mx: "auto", mt: 5 }}>
         <h1>{eventData.eventName}</h1>
-        <Stack direction="row" alignItems="center">
-          <h2 style={{ margin: "10px" }}># of Attendees</h2>
-          <AvatarGroup max={4} style={{ margin: "10px" }}>
-            {eventData.members?.emails?.map((email, index) => (
-              <Avatar key={index} alt={email} src="/AvatarImages/CrabAvatar.webp" />
+        <Stack direction="column" spacing={2} sx={{ mb: 3 }}>
+          <Typography variant="body1">
+            <strong>Host:</strong> {eventData.host.firstName} {eventData.host.lastName} ({eventData.host.email})
+          </Typography>
+          <Typography variant="body1">
+            <strong>Date & Time:</strong> {formattedDateTime}
+          </Typography>
+          <Typography variant="body1">
+            <strong>Location:</strong> {eventData.location}
+          </Typography>
+          <Typography variant="body1">
+            <strong>Description:</strong> {eventData.description}
+          </Typography>
+          <Typography variant="body1">
+            <strong>RSVP By:</strong> {new Date(eventData.rsvpDate).toLocaleDateString()}
+          </Typography>
+        </Stack>
+        
+        <Stack direction="row" alignItems="center" spacing={2}>
+          <Typography variant="h6">Attendees ({acceptedGuests.length})</Typography>
+          <AvatarGroup max={4}>
+            {acceptedGuests.map((guest, index) => (
+              <Avatar 
+                key={index} 
+                alt={guest.member ? `${guest.member.firstName} ${guest.member.lastName}` : guest.email}
+                // You can replace this with a better way to get initials or an image
+                src={`https://placehold.co/40x40/000000/FFFFFF?text=${guest.member ? guest.member.firstName.charAt(0) : guest.email.charAt(0)}`}
+              />
             ))}
           </AvatarGroup>
-          <h3 style={{ margin: "10px" }}>
-            {new Date(eventData.dateTime).toLocaleDateString()}
-          </h3>
-          <h3 style={{ margin: "10px" }}>{eventData.location}</h3>
         </Stack>
 
-        <Stack>
-          <h1>Recipes</h1>
+        <Stack sx={{ mt: 3 }}>
+          <Typography variant="h5">Recipes</Typography>
           <RecipesForm />
         </Stack>
-      </div>
+      </Paper>
     </div>
   );
 }

@@ -20,9 +20,15 @@ export default function SignInForm({}) {
 
         try {
             // Pass credentials as query parameters for GET
-            const response = await fetch(`http://localhost:4000/api/existingUser/?email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}`,
-                {method: "GET"}
-            );
+            const response = await fetch(`http://localhost:4000/api/login`, {
+                method: "POST",
+                headers: {
+                    // Specify the content type as JSON
+                    "Content-Type": "application/json",
+                },
+                // Send email and password in the request body as a JSON string
+                body: JSON.stringify({ email, password }),
+            });
 
             const data = await response.json();
 
@@ -32,11 +38,17 @@ export default function SignInForm({}) {
                 return;
             }
 
-            // Save user info
-            localStorage.setItem("user", JSON.stringify(data.existingUser));
-
-            // Save just the email separately for easy access
-            localStorage.setItem("userEmail", data.existingUser.email);
+            // If login is successful, save user info to localStorage
+            // Save the full user object including accessToken & refreshToken
+            localStorage.setItem("user", JSON.stringify({
+                id: data.user.id,
+                email: data.user.email,
+                firstName: data.user.firstName,
+                lastName: data.user.lastName,
+                accessToken: data.accessToken,
+                refreshToken: data.refreshToken,
+            })
+      );
 
             // Redirect to Dashboard
             navigate("/Dashboard");

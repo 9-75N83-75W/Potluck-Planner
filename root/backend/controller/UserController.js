@@ -1,131 +1,239 @@
-//import User from "../models/User.js";
+// imports
 import User from "../models/User.js";
-//is multer causing and issue? make sure to run the command npm i multer in terminal first.
-import multer from "multer";
-import mongoose from "mongoose";
+import FoodConstraint from "../models/FoodConstraint.js"
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 
-//profile pic
-const storage =multer.memoryStorage();
-const upload = multer({ storage });
-export default upload;
+import "dotenv/config"
+import { generateToken } from "../middleware/authMiddleware.js";
 
-//create a new user
-export const createUser=async(req,res)=>{
+//is multer causing an issue? make sure to run the command npm i multer in terminal first.
+// import multer from "multer";
+
+// ================== HELPERS ==================
+
+  const generateRefreshToken = (user) => {
+    return jwt.sign(
+      { email: user.email, id: user._id },
+      process.env.REFRESH_TOKEN_SECRET,
+      { expiresIn: "7d" }
+    );
+  };
+
+// Create a new user
+export const createUser = async (req, res) => {
     try {
-        //console.log("Incoming request");
+        const { firstName, lastName, email, phone, password, profilePicture } = req.body;
 
-        console.log("BODY:", req.body);
-        const {name,email,phone,password,allergies}=req.body;
+        if (!email || !password) {
+            return res.status(400).json({ error: "Email and password are required" });
+          }
 
-        if (!name){
-            return res.status(400).json({message:"Name is required"})
-        }
-        if (!email){
-            return res.status(400).json({message:"Email is required"})
-        }
-        if (!phone){
-            return res.status(400).json({message:"Phone # is required"})
-        }
-        if (!password){
-            return res.status(400).json({message:"Password is required"})
-        }
-        // if (!allergies){
-        //     return res.status(400).json({message:"Allergy must be filled out"})
-        // }
-        // if (allergies == null || typeof allergies !== 'object') {
-        //     return res.status(400).json({message:"Allergies must be an object, or left empty"})
-        // }
-        let parsedAllergies = {};
+        // Normalize email
+        const normalizedEmail = email.trim().toLowerCase();
 
-        if (allergies && typeof allergies === 'string') {
-            try {
-                parsedAllergies = JSON.parse(allergies);
-            } catch (err) {
-                console.warn("Could not parse allergies, ignoring.");
-            }
-        } else if (typeof allergies === 'object' && allergies !== null) {
-        parsedAllergies = allergies;
+        // Check if user exists
+        const existingUser = await User.findOne({ email: normalizedEmail });
+        if (existingUser) {
+            return res.status(400).json({ error: "An account with this email already exists, try logging in." });
         }
 
-console.log(name,email,phone,password,allergies);
-console.log(mongoose.connection.readyState)
-        const normalizedEmail=email.trim().toLowerCase()    
-        const newUser=new User({
-            name:String(name),
-            email:normalizedEmail,
-            phone,
-            password,
-            // profileImage:req.file.buffer,
-            profileImage: req.file?.buffer || null,
-            // allergies:{
-            //     AirborneAllergy: allergies?.AirborneAllergy||[],
-            //     DietaryAllergy: allergies?.DietaryAllergy||[],
-            //     DietaryRestrictions: allergies?.DietaryRestrictions||[],
-            //     Preferences: allergies?.Preferences||[],
-            //     NoAllergy: allergies?.NoAllergy||[]
-            // }
-            allergies: {
-                AirborneAllergy: parsedAllergies.AirborneAllergy || [],
-                DietaryAllergy: parsedAllergies.DietaryAllergy || [],
-                DietaryRestrictions: parsedAllergies.DietaryRestrictions || [],
-                Preferences: parsedAllergies.Preferences || [],
-                NoAllergy: parsedAllergies.NoAllergy || []
+        // hashed password
+        const hashedPassword = await bcrypt.hash(password, 10);
 
-            }
+        
+        // Create new user
+        const newUser = new User({ 
+            firstName,
+            lastName, 
+            email: normalizedEmail, 
+            phone, 
+            password: hashedPassword, 
+            profilePicture 
         });
-        await newUser.save()
-        
-        res.status(200).json({message:"User Created",user:newUser});
+        await newUser.save();
+
+        // Issue JWT
+        // Generate and set the access token cookie and get the token string
+        const accessToken = generateToken(res, newUser);
+        const refreshToken = generateRefreshToken(newUser);
+
+        // Save refresh token in db
+        newUser.refreshToken = refreshToken;
+        await newUser.save();
+
+
+        res.status(201).json({ 
+            message: " Successfully signed up.", 
+            user: { id: newUser._id, email: newUser.email, firstName, lastName }, accessToken, refreshToken,
+        });
+    } catch (err) {
+        res.status(500).json({ error: `Failed to create user. Server Error:${err}` });
+    }
+};
+
+// Login 
+export const loginUser = async (req, res) => {
+    try {
+      const { email, password } = req.body;
+  
+      if (!email || !password) {
+        return res.status(400).json({ error: "Email and password are required" });
+      }
+  
+      const normalizedEmail = email.trim().toLowerCase();
+      const user = await User.findOne({ email: normalizedEmail });
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+  
+      // Compare password
+      const validPassword = await bcrypt.compare(password, user.password);
+      if (!validPassword) {
+        return res.status(401).json({ error: "Invalid password" });
+      }
+  
+      // Issue JWT
+      // Generate and set the access token cookie and get the token string
+      const accessToken = generateToken(res, user);
+      const refreshToken = generateRefreshToken(user);
+
+      // save refresh token
+      user.refreshToken = refreshToken;
+      await user.save();
+  
+      res.status(200).json({
+        message: "Login successful",
+        user: { id: user._id, email: user.email, firstName: user.firstName, lastName: user.lastName },
+        accessToken, refreshToken,
+      });
     } catch (error) {
-        console.error("Error:", error);
-        // 400 error not 500 -> (connection error)
-        res.status(400).json({message:`Error: ${error}`});
+      console.error("Login error:", error);
+      res.status(500).json({ error: `Error logging in: ${error}` });
+    }
+  };
 
-        
+// Logout
+export const logoutUser = async (req, res) => {
+    try {
+      const { token } = req.body;
+      if (!token) return res.status(400).json({ error: "Token required" });
+  
+      const user = await User.findOne({ refreshToken: token });
+      if (!user) return res.status(404).json({ error: "User not found or already logged out" });
+  
+      user.refreshToken = null;
+      await user.save();
+  
+      res.status(200).json({ message: "Logged out successfully" });
+    } catch (err) {
+      res.status(500).json({ error: "Logout failed" });
+    }
+  };
+
+  // ================== REFRESH TOKEN ==================
+export const refreshToken = async (req, res) => {
+    try {
+      const { token } = req.body;
+      if (!token) return res.status(400).json({ error: "Refresh token required" });
+  
+      const user = await User.findOne({ refreshToken: token });
+      if (!user) return res.status(403).json({ error: "Invalid refresh token" });
+  
+      jwt.verify(token, process.env.REFRESH_TOKEN_SECRET, (err, decoded) => {
+        if (err) return res.status(403).json({ error: "Invalid or expired refresh token" });
+  
+        generateToken(res, user);
+        res.json({ message: "Access token refreshed" });
+      });
+    } catch (err) {
+      res.status(500).json({ error: "Failed to refresh token" });
+    }
+  };
+
+// Get all users
+export const getAllUsers = async (req, res) => {
+    try {
+        const users = await User.find().populate("airborneAllergies dietaryAllergies dietaryRestrictions preferenceDislikes preferenceLikes");
+        res.json(users);
+    } catch (err) {
+        console.error("Error fetching users:", err);
+        res.status(500).json({ error: "Failed to fetch users" });
     }
 };
 
-//getting all backend users
-export const getAllUser=async(req,res)=>{
-    try {
-        const users=await User.find({})
-        res.status(200).json(users)
 
-    }
-    catch(error) {
-        console.error("Error:", error);
-        res.status(500).json({message: "Couldn't get User"});
+// View profile
+export const getUserProfile = async (req, res) => {
+    try {
+        // Security check: Ensure the authenticated user is requesting their own profile
+        if (req.params.id !== req.user.id) {
+            return res.status(403).json({ error: "Forbidden: You can only view your own profile" });
+        }
+        
+        const user = await User.findById(req.params.id).populate("airborneAllergies dietaryAllergies dietaryRestrictions preferenceDislikes preferenceLikes");
+        if (!user) return res.status(404).json({ error: "User not found" });
+        res.json(user);
+    } catch (err) {
+        console.error("Error fetching profile:", err);
+        res.status(500).json({ error: "Failed to fetch profile" });
     }
 };
 
-//logging in
-export const specificUser=async(req,res)=>{
-    try {
-        //.body when execusting .query using postman
-        const {email,password}=req.query ;
-        if (!email){
-            return res.status(400).json({message:"Email is required"})
-        }
-        if (!password){
-            return res.status(400).json({message:"Password is required"})
-        }
-        const normalizedEmail=email.trim().toLowerCase()
-        const existingUser=await User.findOne({email:normalizedEmail})
-        if(!existingUser){
-            return res.status(404).json({message:"User not found"});
-        }
-        if(existingUser.password!=password){
-            return res.status(400).json({message:"Password is incorrect"})
-        }
-        return res.status(200).json({message:"Log-In Successful",existingUser});
-        
-    } 
-    catch (error) {
-        console.error("Error", error);
-        res.status(500).json({message:`Error: ${error}`})
-    }
-}
+//--------------------------------------------------------------------------------------------
 
+// Find or create food constraint
+const findOrCreateConstraint = async (constraint, category) => {
+
+    let existingConstraint = await FoodConstraint.findOne({constraint: constraint.trim().toLowerCase(), category, });
+    if (existingConstraint) return existingConstraint._id;
+
+    const newConstraint = new FoodConstraint({ constraint: constraint.trim().toLowerCase(), category, });
+    await newConstraint.save();
+    return newConstraint._id;
+};
+
+// Update food constraints by category
+export const updateUserFoodConstraint = async (req, res) => {
+    try {
+      const { category } = req.params; // e.g. "dietary_allergy"
+      const { constraints } = req.body; // array of strings
+  
+      if (!["airborne_allergy", "dietary_allergy", "dietary_restriction", "preference_dislikes", "preference_likes"].includes(category)) {
+        return res.status(400).json({ error: "Invalid category" });
+      }
+  
+      const constraintIds = await Promise.all(
+        constraints.map((c) => findOrCreateConstraint(c, category))
+      );
+  
+      const fieldMap = {
+        airborne_allergy: "airborneAllergies",
+        dietary_allergy: "dietaryAllergies",
+        dietary_restriction: "dietaryRestrictions",
+        preference_dislikes: "preferenceDislikes",
+        preference_likes: "preferenceLikes",
+      };
+  
+      const updatedUser = await User.findByIdAndUpdate(
+        req.params.id,
+        { [fieldMap[category]]: constraintIds },
+        { new: true }
+      ).populate("airborneAllergies dietaryAllergies dietaryRestrictions preferenceDislikes preferenceLikes");
+  
+      if (!updatedUser) return res.status(404).json({ error: "User not found" });
+  
+      res.json(updatedUser);
+    } catch (err) {
+      console.error("Error updating food constraints:", err);
+      res.status(500).json({ error: "Failed to update food constraints" });
+    }
+  };
+
+//--------------------------------------------------------------------------------------------
+
+
+// Forget password
 export const forgetPassword=async(req,res)=>{
     try { 
         const {email,password}=req.body;
@@ -140,7 +248,7 @@ export const forgetPassword=async(req,res)=>{
         if(!existingUser){
             return res.status(404).json({message:"User not found"});
         }
-        existingUser.password=password;
+        existingUser.password=await bcrypt.hash(password, 10);
         await existingUser.save()
         res.status(200).json({message:"Password changed"})
     } catch (error) {
@@ -149,44 +257,14 @@ export const forgetPassword=async(req,res)=>{
     }
 }
 
-export const updateAllergies = async (req, res) => {
-  try {
-    const { email, allergies } = req.body;
 
-    if (!email) {
-      return res.status(400).json({ message: "Email is required" });
-    }
 
-    if (!allergies || typeof allergies !== "object") {
-      return res.status(400).json({ message: "Allergies data is required and must be an object" });
-    }
 
-    // Normalize email
-    const normalizedEmail = email.trim().toLowerCase();
+// //profile pic
+// const storage =multer.memoryStorage();
+// const upload = multer({ storage });
+// export default upload;
 
-    // Find user by email
-    const user = await User.findOne({ email: normalizedEmail });
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
-    // Update allergies fields (make sure your User model has this schema)
-    user.allergies = {
-      AirborneAllergy: allergies.AirborneAllergy || [],
-      DietaryAllergy: allergies.DietaryAllergy || [],
-      DietaryRestrictions: allergies.DietaryRestrictions || [],
-      Preferences: allergies.Preferences || [],
-      NoAllergy: allergies.NoAllergy || []
-    };
-
-    await user.save();
-
-    return res.status(200).json({ message: "Allergies updated successfully", allergies: user.allergies });
-  } catch (error) {
-    console.error("Error updating allergies:", error);
-    return res.status(500).json({ message: "Internal Server Error" });
-  }
-};
 
 //profile pic
 // export const Profilepic = async (req: MulterRequest, res: Response) => {
