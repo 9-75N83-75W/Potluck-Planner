@@ -40,6 +40,8 @@ export default function SignInForm({}) {
 
             // If login is successful, save user info to localStorage
             // Save the full user object including accessToken & refreshToken
+            localStorage.setItem("userId", data.user.id);
+            localStorage.setItem("accessToken", data.accessToken);
             localStorage.setItem("user", JSON.stringify({
                 id: data.user.id,
                 email: data.user.email,

@@ -12,7 +12,7 @@ export const createFoodConstraint = async (req, res) => {
     res.status(201).json({ message: "Food constraint created", constraint: newConstraint });
   } catch (err) {
     console.error("Error creating food constraint:", err);
-    res.status(500).json({ error: "Failed to create food constraint" });
+    res.status(500).json({ error: `Failed to create food constraint: ${err}` });
   }
 };
 
@@ -23,7 +23,7 @@ export const getAllFoodConstraints = async (req, res) => {
     res.json(constraints);
   } catch (err) {
     console.error("Error fetching food constraints:", err);
-    res.status(500).json({ error: "Failed to fetch food constraints" });
+    res.status(500).json({ error: `Failed to fetch food constraints: ${err}` });
   }
 };
 
@@ -36,7 +36,7 @@ export const getFoodConstraintById = async (req, res) => {
     res.json(constraint);
   } catch (err) {
     console.error("Error fetching food constraint:", err);
-    res.status(500).json({ error: "Failed to fetch food constraint" });
+    res.status(500).json({ error: `Failed to fetch food constraint: ${err}` });
   }
 };
 
@@ -49,7 +49,7 @@ export const updateFoodConstraint = async (req, res) => {
     res.json(updated);
   } catch (err) {
     console.error("Error updating food constraint:", err);
-    res.status(500).json({ error: "Failed to update food constraint" });
+    res.status(500).json({ error: `Failed to update food constraint: ${err}` });
   }
 };
 
@@ -62,6 +62,6 @@ export const deleteFoodConstraint = async (req, res) => {
     res.json({ message: "Food constraint deleted" });
   } catch (err) {
     console.error("Error deleting food constraint:", err);
-    res.status(500).json({ error: "Failed to delete food constraint" });
+    res.status(500).json({ error: `Failed to delete food constraint: ${err}` });
   }
 };

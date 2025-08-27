@@ -23,35 +23,6 @@ const PORT = process.env.PORT || 4000;
 //   res.json({ message: 'Hello from backend!' });
 // });
 
-// Test route
-// app.use('/api',allroutes)
-// app.listen(4000, () => {
-//   console.log('Server running on http://localhost:4000');
-// });
-// Connect to MongoDB and start server
-// mongoose.connect(process.env.MONGO_URI || "mongodb://localhost:27017/PotluckPlanner", { useNewUrlParser: true, useUnifiedTopology: true })
-// mongoose.connect(process.env.MONGO_URI || "mongodb://localhost:27017/PotluckPlanner", {  })
-//   .then(() => {
-//     app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-//   })
-//   .catch(err => console.log(err));
-
-// // Also catch future connection errors (after initial connection)
-// mongoose.connection.on('error', err => {
-//   console.error("Mongoose runtime error:", err); // e.g., network loss after being connected
-// });
-
-
-// mongoose.connect('mongodb://localhost:27017/PotluckPlanner')
-//   .then(() => {
-//     console.log('✅ MongoDB connection successful');
-//     process.exit(0);
-//   })
-//   .catch(err => {
-//     console.error('❌ MongoDB connection failed:', err);
-//     process.exit(1);
-//   });
-
 mongoose.connection.on('connected', () => console.log('connected'));
 mongoose.connection.on('open', () => console.log('open'));
 mongoose.connection.on('disconnected', () => console.log('disconnected'));

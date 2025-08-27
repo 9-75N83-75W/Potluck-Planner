@@ -1,21 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
-import {
-  Modal,
-  Box,
-  TextField,
-  FormGroup,
-  FormControlLabel,
-  Checkbox,
-  Typography,
-} from "@mui/material";
+import { Modal, Box, Typography, TextField, Checkbox, FormGroup, FormControlLabel, Button, Chip, Autocomplete, Alert, CircularProgress} from "@mui/material";
 import RecipesCards from "../components/RecipesCards";
+import axios from "axios";
+import FoodConstraint from "../../../../backend/models/FoodConstraint";
 
-const style = {
-  position: "absolute",
-  top: "50%",
-  left: "50%",
-  transform: "translate(-50%, -50%)",
+const styleModal = { position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)",
   maxWidth: "90vw",         // keeps it within screen width
   maxHeight: "90vh",        // keeps it within screen height
   overflowY: "auto",        // scroll inside modal if content is too tall
@@ -25,232 +14,246 @@ const style = {
   p: 4,
 };
 
-export default function RecipesForm() {
-  const [open, setOpen] = useState(false);
+export default function RecipesForm({ open, onClose, eventId, onRecipeCreated }) {
+
+  const [loading, setLoading] = useState(false);
+  const [constraints, setConstraints] = useState({
+    airborneAllergies: [],
+    dietaryAllergies: [],
+    dietaryRestrictions: [],
+    preferenceDislikes: [],
+    preferenceLikes: [],
+  });
+
   const [recipeName, setRecipeName] = useState("");
   const [description, setDescription] = useState("");
-  const [allergyOptions, setAllergyOptions] = useState({});
-  const [selectedAllergies, setSelectedAllergies] = useState({
-    AirborneQuestion: [],
-    DietaryQuestion: [],
-    DietaryRestrictionsQuestion: [],
-    PreferencesQuestion: [],
-  });
-  const [isSubmitDisabled, setIsSubmitDisabled] = useState(false);
-
-  const location = useLocation();
-
-  const email = localStorage.getItem("userEmail");
-
-  // Extract ID from URL after "/Event/"
-  const id = location.pathname.split("/Event/")[1] || "";
+  const [airborneChecked, setAirborneChecked] = useState([]);
+  const [dietaryChecked, setDietaryChecked] = useState([]);
+  const [dietaryAllergens, setDietaryAllergens] = useState([]);
+  const [submitDisabled, setSubmitDisabled] = useState(false);
+  const [alertVisible, setAlertVisible] = useState(false);
 
   useEffect(() => {
-    async function fetchData() {
-      if (!id) {
-        console.error("No event ID found in URL");
-        return;
-      }
+
+    const fetchConstraints = async () => {
+      if ( !eventId || !open ) return; // only fetch when modal opens with eventId
 
       try {
-        console.log("Event ID from URL:", id);
+        setLoading(true);
+        const user = JSON.parse(localStorage.getItem("user"));
+        if (!user || !user.accessToken) {
+          throw new Error("User not authenticated. Please log in again.");
+        }
 
-        // 1. Fetch event by ID
-        const eventRes = await fetch(`http://localhost:4000/api/Event/${id}`);
-        if (!eventRes.ok) throw new Error(`Event fetch failed: ${eventRes.status}`);
-        const eventData = await eventRes.json();
+        const res = await axios.get(`http://localhost:4000/api/event/${eventId}/constraints`, 
+          { 
+            headers: { Authorization: `Bearer ${user.accessToken}` }, 
+          }
+        ); 
 
-        // const invitedEmails = eventData.invitedEmails || [];
-        // console.log("Invited Emails:", invitedEmails);
-        // const invitedEmails = eventData.event?.invitedEmails || [];
-        // console.log("Invited Emails:", invitedEmails);
-        // const invitedEmails = eventData.invitedEmails || [];
-
-        // // Only add if userEmail exists and isn't already in the array
-        // if (email && !invitedEmails.includes(email)) {invitedEmails = [...invitedEmails, email]; }
-
-        // console.log("Invited Emails", invitedEmails)
-
-        const invitedEmails = eventData.invitedEmails || [];
-        const updatedInvitedEmails = (email && !invitedEmails.includes(email))
-          ? [...invitedEmails, email]
-          : invitedEmails;
-
-        console.log("Invited Emails", updatedInvitedEmails);
-
-        // 2. Fetch all users
-        const usersRes = await fetch("http://localhost:4000/api/getAllUsers");
-        if (!usersRes.ok) throw new Error(`Users fetch failed: ${usersRes.status}`);
-        const allUsers = await usersRes.json();
-
-        // 3. Filter for invited users
-        const invitedUsers = allUsers.filter((u) =>
-          updatedInvitedEmails.includes(u.email)
-        );
-
-        // 4. Merge and deduplicate allergies
-        const mergedAllergies = {
-          AirborneQuestion: [],
-          DietaryQuestion: [],
-          DietaryRestrictionsQuestion: [],
-          PreferencesQuestion: [],
-        };
-
-        invitedUsers.forEach((user) => {
-          if (user.allergies?.AirborneAllergy)
-            mergedAllergies.AirborneQuestion.push(...user.allergies.AirborneAllergy);
-          if (user.allergies?.DietaryAllergy)
-            mergedAllergies.DietaryQuestion.push(...user.allergies.DietaryAllergy);
-          if (user.allergies?.DietaryRestrictions)
-            mergedAllergies.DietaryRestrictionsQuestion.push(...user.allergies.DietaryRestrictions);
-          if (user.allergies?.Preferences)
-            mergedAllergies.PreferencesQuestion.push(...user.allergies.Preferences);
-        });
-
-        // Remove duplicates
-        Object.keys(mergedAllergies).forEach((key) => {
-          mergedAllergies[key] = [...new Set(mergedAllergies[key])];
-        });
-
-        setAllergyOptions(mergedAllergies);
+        const data = res.data
+        setConstraints({
+          airborneAllergies: data.airborne_allergy,
+          dietaryAllergies: data.dietary_allergy,
+          dietaryRestrictions: data.dietary_restriction,
+          preferenceDislikes: data.preference_dislikes,
+          preferenceLikes: data.preference_likes,
+        })
+        console.log("Fetched constraints by category:", res.data);
       } catch (err) {
-        console.error("Error fetching data:", err);
+        console.error("Error fetching constraints:", err);
+      } finally {
+        setLoading(false);
       }
-    }
+    };
 
-    fetchData();
-
-    
-  }, [id]);
+    fetchConstraints();
+  }, [eventId, open]);
 
   useEffect(() => {
-    if (selectedAllergies.AirborneQuestion.length > 0) {
-      setIsSubmitDisabled(true);
-      alert("You cannot submit a recipe if any Airborne allergies are selected.");
+    // Disable submit if any airborne allergy is checked
+    if (airborneChecked.length > 0) {
+      setSubmitDisabled(true);
+      setAlertVisible(true);
     } else {
-      setIsSubmitDisabled(false);
+      setSubmitDisabled(false);
+      setAlertVisible(false);
     }
-  }, [selectedAllergies.AirborneQuestion]);
+  }, [airborneChecked]);
 
-  const handleCheckboxChange = (category, value) => {
-    setSelectedAllergies((prev) => {
-      const current = prev[category];
-      if (current.includes(value)) {
-        return { ...prev, [category]: current.filter((v) => v !== value) };
-      } else {
-        return { ...prev, [category]: [...current, value] };
-      }
-    });
+  const handleAirborneChange = (event) => {
+    const { value, checked } = event.target;
+    setAirborneChecked((prev) => 
+      checked ? [...prev, value] : prev.filter((v) => v !== value)
+    );
   };
 
-  const handleSubmit = async () => {
-    const email = localStorage.getItem("userEmail");
-    const payload = {
-      email,
-      recipeName,
-      description,
-      questions: {
-        AirborneQuestion: { AirAnswer: selectedAllergies.AirborneQuestion },
-        DietaryQuestion: { DietaryAnswer: selectedAllergies.DietaryQuestion },
-        DietaryRestrictionsQuestion: { DRAnswer: selectedAllergies.DietaryRestrictionsQuestion },
-        PreferencesQuestion: { PreferencesAnswer: selectedAllergies.PreferencesQuestion },
-      },
-    };
+  const handleDietaryChange = (event) => {
+    const { value, checked } = event.target;
+    setDietaryChecked((prev) =>
+    checked ? [...prev, value] : prev.filter((v) => v !== value)
+    );
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
 
     try {
-      const res = await fetch("http://localhost:4000/api/createRecipe", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      const data = await res.json();
+      const user = JSON.parse(localStorage.getItem("user"));
+        if (!user || !user.accessToken) {
+          throw new Error("User not authenticated. Please log in again.");
+        }
 
-      if (res.ok) {
-        alert("Recipe Created!");
-        setOpen(false);
-        setRecipeName("");
-        setDescription("");
-        setSelectedAllergies({
-          AirborneQuestion: [],
-          DietaryQuestion: [],
-          DietaryRestrictionsQuestion: [],
-          PreferencesQuestion: [],
-        });
-      } else {
-        alert(data.message);
-      }
+        // Prepare all selected constraints
+        const selectedConstraints = [
+          ...airborneChecked.map(c => ({ constraint: String(c), category: "airborne_allergy" })),
+          ...dietaryChecked.map(c => ({ constraint: String(c), category: "dietary_restriction" })),
+          ...dietaryAllergens.map(c => ({ constraint: String(c), category: "dietary_allergy" })),
+        ];
+
+        console.log(selectedConstraints)
+
+        // Get IDs for all constraints from backend
+        const constraintIds = await Promise.all(
+          selectedConstraints.map(async (c) => {
+            const res = await axios.post("http://localhost:4000/api/foodConstraint/findOrCreate", c,
+              { headers: { Authorization: `Bearer ${user.accessToken}` } }
+            );
+            return res.data._id;
+          })
+        );
+
+        // Build payload to send to backend
+        const payload = {
+          recipeName,
+          description,
+          event: eventId,
+          date: new Date(),
+          foodConstraints: constraintIds,
+        };
+
+        // Create recipe
+        const res = await axios.post("http://localhost:4000/api/createRecipe", payload,
+          { headers: {Authorization: `Bearer ${user.accessToken}`,},}
+        );
+
+        const recipe = res.data.recipe;
+        console.log("Recipe created:", recipe);
+
+        alert("Recipe created successfully!");
+
+        if (onRecipeCreated) onRecipeCreated();
+
+        onClose(); //Close modal after success
+
     } catch (err) {
-      console.error("Error creating recipe:", err);
+      console.error("Error submitting recipe:", err);
+    } finally {
+      setLoading(false);
     }
   };
 
-
-  // Map backend keys to human-friendly display names
-  const displayNames = {
-    AirborneQuestion: "Airborne",
-    DietaryQuestion: "Dietary",
-    DietaryRestrictionsQuestion: "Restrictions",
-    PreferencesQuestion: "Preferences"
-    };
-
-
   return (
-    <div>
-      <button onClick={() => setOpen(true)}>Add Recipe</button>
+      <Modal open={open} onClose={onClose}>
 
-      <Modal open={open} onClose={() => setOpen(false)}>
-        <Box sx={style}>
-          <h2>Add a Recipe</h2>
+        <Box sx={ styleModal }>
 
-          <TextField
-            fullWidth
-            label="Recipe Name"
-            value={recipeName}
-            onChange={(e) => setRecipeName(e.target.value)}
-            margin="normal"
-          />
-          <TextField
-            fullWidth
-            label="Description"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            margin="normal"
-            multiline
-          />
+          <h1>Recipe Form</h1>
 
-          {Object.keys(allergyOptions).map((category) => (
-            <div key={category}>
-              {/* <h2>{category}</h2> */}
-              <h3>{displayNames[category] || category}</h3>
-              <FormGroup>
-                {allergyOptions[category].map((option) => (
-                  <FormControlLabel
-                    key={option}
-                    control={
-                      <Checkbox
-                        checked={selectedAllergies[category].includes(option)}
-                        onChange={() => handleCheckboxChange(category, option)}
-                      />
-                    }
-                    label={option}
-                  />
-                ))}
-              </FormGroup>
-            </div>
-          ))}
+          {alertVisible && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              ⚠️ This dish contains an ingredient extremely unsafe for some guests!
+            </Alert>
+          )}
 
-          {/* <button onClick={handleSubmit} style={{ marginTop: "16px" }}> */}
-          <button onClick={handleSubmit} style={{ marginTop: "16px" }} disabled={isSubmitDisabled} >
-            Submit Recipe
-          </button>
+
+          <form onSubmit={handleSubmit}>
+
+            <TextField
+              label = "Recipe Name"
+              value = {recipeName}
+              onChange={(e) => setRecipeName(e.target.value)}
+              fullWidth
+              required
+              margin = "normal"
+            />
+
+            <TextField
+              label = "Description"
+              value = {description}
+              onChange={(e) => setDescription(e.target.value)}
+              fullWidth
+              multilinerows = {3}
+              margin = "normal"
+            />
+
+            < h3>
+              Airborne Allergies
+            </h3>
+            <FormGroup>
+              {constraints.airborneAllergies.map((a) => (
+                <FormControlLabel
+                  key = {a}
+                  control = {
+                    <Checkbox
+                      value = {a}
+                      checked = {airborneChecked.includes(a)}
+                      onChange = {handleAirborneChange}
+                    />
+                  }
+                  label = {a}
+                />
+              ))}
+            </FormGroup>
+
+            < h3>
+              Dietary Restrictions
+            </h3>
+            <FormGroup>
+              {constraints.dietaryRestrictions.map((d) => (
+                <FormControlLabel
+                  key = {d}
+                  control = {
+                    <Checkbox
+                      value = {d}
+                      checked = {dietaryChecked.includes(d)}
+                      onChange = {handleDietaryChange}
+                    />
+                  }
+                  label = {d}
+                />
+              ))}
+            </FormGroup>
+
+            < h3>
+              Dietary Allergens
+            </h3>
+            <Autocomplete
+              multiple
+              freeSolo
+              options = {constraints.dietaryAllergies}
+              value = {dietaryAllergens}
+              onChange = {(e, newValue) => setDietaryAllergens(newValue)}
+              renderTags = {(value, getTagProps) =>
+                value.map((option, index) => {
+                  const { key: chipKey, ...tagProps } = getTagProps({ index }); // destructure key out
+                  return <Chip key={chipKey} label={option} {...tagProps} sx={{ backgroundColor: "#FDF9C5" }} />
+              })
+              }
+              renderInput={(params) => (
+                <TextField {...params} variant = "outlined" label = "Allergens" />
+              )}
+            />
+
+            <button type="submit" variant="contained" disabled = {loading || submitDisabled} >
+                  {loading ? <CircularProgress size={24} /> : "Add Recipe"}
+            </button>
+          </form>
+
         </Box>
+
       </Modal>
 
-      <div>
-        <RecipesCards/>
-      </div>
-
-    </div>
-  );
+  )
 }
-

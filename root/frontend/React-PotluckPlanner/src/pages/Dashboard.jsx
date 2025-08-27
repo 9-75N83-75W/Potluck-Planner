@@ -1,10 +1,10 @@
 //imports
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import NavBar from "../components/NavBar";
+import DashboardBanner from "../atoms/DashboardBanner"
 import NewEventForm from "../components/NewEventForm";
 import Invitations from "../components/Invitations"
-import AllEvents from "../components/AllEvents";
+import AcceptedEvents from "../components/AcceptedEvents";
 //import SideBar from "../atoms/SideBar";
 
 export default function Dashboard() {
@@ -24,7 +24,15 @@ export default function Dashboard() {
     return (
 
         <div>
-            <NavBar/>
+            <div>
+                <DashboardBanner/>
+            </div>
+            <div>
+                <Invitations/>
+            </div>
+            <div>
+                <AcceptedEvents/>
+            </div>
             <div>
                 {/* Button to open modal */}
                 <button onClick={handleOpen}>
@@ -34,24 +42,6 @@ export default function Dashboard() {
                 {/* Modal Form */}
                 <NewEventForm open={isModalOpen} onClose={handleClose} />
             </div>
-            <div>
-                <Invitations/>
-            </div>
-            <div>
-                <AllEvents/>
-            </div>
         </div>
-        // <div>
-        //     <NavBar/>
-        //     <div>
-        //         <div style={{ margin: "10px", padding: "10px" }}>   
-        //             <NewEventForm/>
-        //         </div>
-        //         <button>
-
-        //         </button>
-        //         <h2>Events.</h2>
-        //     </div>
-        // </div>
     );
 };

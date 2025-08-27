@@ -7,18 +7,6 @@ import jwt from "jsonwebtoken";
 import "dotenv/config"
 import { generateToken } from "../middleware/authMiddleware.js";
 
-//is multer causing an issue? make sure to run the command npm i multer in terminal first.
-// import multer from "multer";
-
-// ================== HELPERS ==================
-
-  const generateRefreshToken = (user) => {
-    return jwt.sign(
-      { email: user.email, id: user._id },
-      process.env.REFRESH_TOKEN_SECRET,
-      { expiresIn: "7d" }
-    );
-  };
 
 // Create a new user
 export const createUser = async (req, res) => {
@@ -116,38 +104,13 @@ export const loginUser = async (req, res) => {
 // Logout
 export const logoutUser = async (req, res) => {
     try {
-      const { token } = req.body;
-      if (!token) return res.status(400).json({ error: "Token required" });
-  
-      const user = await User.findOne({ refreshToken: token });
-      if (!user) return res.status(404).json({ error: "User not found or already logged out" });
-  
-      user.refreshToken = null;
-      await user.save();
+      console.log(req.cookies)
+
+      res.clearCookie("jwt", {path:"/"})
   
       res.status(200).json({ message: "Logged out successfully" });
     } catch (err) {
-      res.status(500).json({ error: "Logout failed" });
-    }
-  };
-
-  // ================== REFRESH TOKEN ==================
-export const refreshToken = async (req, res) => {
-    try {
-      const { token } = req.body;
-      if (!token) return res.status(400).json({ error: "Refresh token required" });
-  
-      const user = await User.findOne({ refreshToken: token });
-      if (!user) return res.status(403).json({ error: "Invalid refresh token" });
-  
-      jwt.verify(token, process.env.REFRESH_TOKEN_SECRET, (err, decoded) => {
-        if (err) return res.status(403).json({ error: "Invalid or expired refresh token" });
-  
-        generateToken(res, user);
-        res.json({ message: "Access token refreshed" });
-      });
-    } catch (err) {
-      res.status(500).json({ error: "Failed to refresh token" });
+      res.status(500).json({ error: `Logout error: ${err}` });
     }
   };
 
@@ -158,7 +121,7 @@ export const getAllUsers = async (req, res) => {
         res.json(users);
     } catch (err) {
         console.error("Error fetching users:", err);
-        res.status(500).json({ error: "Failed to fetch users" });
+        res.status(500).json({ error: `Failed to fetch users: ${err}` });
     }
 };
 
@@ -176,22 +139,63 @@ export const getUserProfile = async (req, res) => {
         res.json(user);
     } catch (err) {
         console.error("Error fetching profile:", err);
-        res.status(500).json({ error: "Failed to fetch profile" });
+        res.status(500).json({ error: `Failed to fetch profile: ${err}` });
     }
 };
 
 //--------------------------------------------------------------------------------------------
 
+// // Find or create food constraint
+// const findOrCreateConstraint = async (constraint, category) => {
+
+//     let existingConstraint = await FoodConstraint.findOne({constraint: constraint.trim().toLowerCase(), category, });
+//     if (existingConstraint) return existingConstraint._id;
+
+//     const newConstraint = new FoodConstraint({ constraint: constraint.trim().toLowerCase(), category, });
+//     await newConstraint.save();
+//     return newConstraint._id;
+// };
+
 // Find or create food constraint
-const findOrCreateConstraint = async (constraint, category) => {
+export const findOrCreateConstraint = async (constraint, category) => {
+  try {
 
-    let existingConstraint = await FoodConstraint.findOne({constraint: constraint.trim().toLowerCase(), category, });
-    if (existingConstraint) return existingConstraint._id;
+    if (typeof constraint !== "string") {
+      console.error("Invalid constraint type:", constraint);
+      throw new Error("Constraint must be a string");
+    }
 
-    const newConstraint = new FoodConstraint({ constraint: constraint.trim().toLowerCase(), category, });
+    if (!constraint || !category) {
+      throw new Error("Constraint and category are required");
+    }
+
+    const trimmedConstraint = constraint.trim().toLowerCase();
+
+    // Check if it already exists
+    let existingConstraint = await FoodConstraint.findOne({
+      constraint: trimmedConstraint,
+      category,
+    });
+
+    if (existingConstraint) {
+      return existingConstraint._id;
+    }
+
+    // Create new constraint if it doesn't exist
+    const newConstraint = new FoodConstraint({
+      constraint: trimmedConstraint,
+      category,
+    });
+
     await newConstraint.save();
     return newConstraint._id;
+
+  } catch (err) {
+    console.error("Error in findOrCreateConstraint:", err);
+    throw err; // propagate error to caller
+  }
 };
+
 
 // Update food constraints by category
 export const updateUserFoodConstraint = async (req, res) => {
@@ -226,40 +230,72 @@ export const updateUserFoodConstraint = async (req, res) => {
       res.json(updatedUser);
     } catch (err) {
       console.error("Error updating food constraints:", err);
-      res.status(500).json({ error: "Failed to update food constraints" });
+      res.status(500).json({ error: `Failed to update food constraints: ${err}` });
     }
   };
 
-//--------------------------------------------------------------------------------------------
-
+//--------------------------------- Note: not implemented yet, will get to it if we have time, if someone wants to test it in postman though - please do!
 
 // Forget password
 export const forgetPassword=async(req,res)=>{
-    try { 
-        const {email,password}=req.body;
-        if (!email){
-            return res.status(400).json({message:"Email is required"})
-        }
-        if (!password){
-            return res.status(400).json({message:"Password is required"})
-        }
-        const normalizedEmail=email.trim().toLowerCase()
-        const existingUser=await User.findOne({email:normalizedEmail})
-        if(!existingUser){
-            return res.status(404).json({message:"User not found"});
-        }
-        existingUser.password=await bcrypt.hash(password, 10);
-        await existingUser.save()
-        res.status(200).json({message:"Password changed"})
-    } catch (error) {
-        console.error("Error", error);
-        res.status(500).json({message:`Error: ${error}`})
-    }
+  try { 
+      const {email,password}=req.body;
+      if (!email){
+          return res.status(400).json({message:"Email is required"})
+      }
+      if (!password){
+          return res.status(400).json({message:"Password is required"})
+      }
+      const normalizedEmail=email.trim().toLowerCase()
+      const existingUser=await User.findOne({email:normalizedEmail})
+      if(!existingUser){
+          return res.status(404).json({message:"User not found"});
+      }
+      existingUser.password=await bcrypt.hash(password, 10);
+      await existingUser.save()
+      res.status(200).json({message:"Password changed"})
+  } catch (error) {
+      console.error("Error", error);
+      res.status(500).json({message:`Error: ${error}`})
+  }
 }
 
 
+//------- Token Mess  ------- Note: I know refresh tokens are being generated but I don't think they are being used, but I don't want to break the code so please ignore them for now 
+
+// ================== HELPERS ==================
+
+const generateRefreshToken = (user) => {
+  return jwt.sign(
+    { email: user.email, id: user._id },
+    process.env.REFRESH_TOKEN_SECRET,
+    { expiresIn: "7d" }
+  );
+};
+
+  // ================== REFRESH TOKEN ==================
+  export const refreshToken = async (req, res) => {
+    try {
+      const { token } = req.body;
+      if (!token) return res.status(400).json({ error: "Refresh token required" });
+  
+      const user = await User.findOne({ refreshToken: token });
+      if (!user) return res.status(403).json({ error: "Invalid refresh token" });
+  
+      jwt.verify(token, process.env.REFRESH_TOKEN_SECRET, (err, decoded) => {
+        if (err) return res.status(403).json({ error: "Invalid or expired refresh token" });
+  
+        generateToken(res, user);
+        res.json({ message: "Access token refreshed" });
+      });
+    } catch (err) {
+      res.status(500).json({ error: "Failed to refresh token" });
+    }
+  };
 
 
+//is multer causing an issue? make sure to run the command npm i multer in terminal first.
+// import multer from "multer";
 // //profile pic
 // const storage =multer.memoryStorage();
 // const upload = multer({ storage });

@@ -22,7 +22,7 @@ export const createRecipe = async (req, res) => {
     res.status(201).json({ message: "Recipe created successfully", recipe: newRecipe });
   } catch (err) {
     console.error("Error creating recipe:", err);
-    res.status(500).json({ error: "Failed to create recipe" });
+    res.status(500).json({ error: `Failed to create recipe: ${err}` });
   }
 };
 
@@ -37,7 +37,7 @@ export const getAllRecipes = async (req, res) => {
     res.json(recipes);
   } catch (err) {
     console.error("Error fetching recipes:", err);
-    res.status(500).json({ error: "Failed to fetch recipes" });
+    res.status(500).json({ error: `Failed to fetch recipes: ${err}` });
   }
 };
 
@@ -54,7 +54,7 @@ export const getRecipeById = async (req, res) => {
     res.json(recipe);
   } catch (err) {
     console.error("Error fetching recipe:", err);
-    res.status(500).json({ error: "Failed to fetch recipe" });
+    res.status(500).json({ error: `Failed to fetch recipe: ${err}` });
   }
 };
 
@@ -78,7 +78,7 @@ export const updateRecipe = async (req, res) => {
     res.json(updatedRecipe);
   } catch (err) {
     console.error("Error updating recipe:", err);
-    res.status(500).json({ error: "Failed to update recipe" });
+    res.status(500).json({ error: `Failed to update recipe: ${err}` });
   }
 };
 
@@ -99,7 +99,7 @@ export const deleteRecipe = async (req, res) => {
     res.json({ message: "Recipe deleted successfully" });
   } catch (err) {
     console.error("Error deleting recipe:", err);
-    res.status(500).json({ error: "Failed to delete recipe" });
+    res.status(500).json({ error: `Failed to delete recipe: ${err}` });
   }
 };
 
@@ -108,12 +108,12 @@ export const getRecipesByEvent = async (req, res) => {
   try {
     const recipes = await Recipe.find({ event: req.params.eventId })
       .populate("createdBy", "firstName lastName email")
-      .populate("foodConstraints", "name description");
+      .populate("foodConstraints", "name description constraint category")
 
     res.json(recipes);
   } catch (err) {
     console.error("Error fetching event recipes:", err);
-    res.status(500).json({ error: "Failed to fetch recipes for event" });
+    res.status(500).json({ error: `Failed to fetch recipes for event: ${err}` });
   }
 };
 
@@ -122,11 +122,12 @@ export const getRecipesByUser = async (req, res) => {
   try {
     const recipes = await Recipe.find({ createdBy: req.params.userId })
       .populate("event", "eventName dateTime location")
-      .populate("foodConstraints", "name description");
+      .populate("foodConstraints", "name description")
+      .populate("foodConstraints", "constraint category");
 
     res.json(recipes);
   } catch (err) {
     console.error("Error fetching user recipes:", err);
-    res.status(500).json({ error: "Failed to fetch recipes by user" });
+    res.status(500).json({ error: `Failed to fetch recipes by user: ${err}` });
   }
 };

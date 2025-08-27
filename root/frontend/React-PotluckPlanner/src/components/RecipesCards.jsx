@@ -1,151 +1,101 @@
-// import React, { useEffect, useState } from "react";
-// import { Card, CardContent, Typography, Grid, Box } from "@mui/material";
+// imports
 
-// export default function AllRecipes() {
-//   const [recipes, setRecipes] = useState([]);
+import React, { useState } from "react";
+import { Card, CardContent, Typography, Chip, Stack, Modal, Box } from "@mui/material";
 
-//   useEffect(() => {
-//     async function fetchRecipes() {
-//       try {
-//         const res = await fetch("http://localhost:4000/api/recipesAll");
-//         console.log("HTTP status:", res.status);
-//         const text = await res.text();
-//         console.log("Response text:", text); // see what the backend is actually returning
-//         const data = JSON.parse(text);
-        
-//         // const data = await res.json();
-//         setRecipes(data);
-//       } catch (err) {
-//         console.error("Error fetching recipes help:", err);
-//       }
-//     }
+const modalStyle = {
+  position: "absolute",
+  top: "50%",
+  left: "50%",
+  transform: "translate(-50%, -50%)",
+  bgcolor: "background.paper",
+  boxShadow: 24,
+  borderRadius: 3,
+  p: 4,
+  maxWidth: 500,
+  width: "90%",
+};
 
-//     fetchRecipes();
-//   }, []);
+export default function RecipesCards({ recipes }) {
 
-//   return (
-//     <Box sx={{ padding: 2 }}>
-//       <Grid container spacing={2}>
-//         {recipes.map((recipe) => (
-//           <Grid item xs={12} sm={6} md={4} key={recipe._id}>
-//             <Card sx={{ minHeight: "200px" }}>
-//               <CardContent>
-//                 <h2>
-//                   {recipe.recipeName}
-//                 </h2>
-//                 <p>
-//                   Description: {recipe.description}
-//                 </p>
+  const [selectedRecipe, setSelectedRecipe] = useState(null);
 
-//                 <h3>Airborne:</h3>
-//                 <h4>
-//                   {recipe.questions.AirborneQuestion?.AirAnswer?.join(", ") || "None"}
-//                 </h4>
-
-//                 <h3>Dietary:</h3>
-//                 <h4>
-//                   {recipe.questions.DietaryQuestion?.DietaryAnswer?.join(", ") || "None"}
-//                 </h4>
-
-//                 <h3>Restrictions:</h3>
-//                 <h4>
-//                   {recipe.questions.DietaryRestrictionsQuestion?.DRAnswer?.join(", ") || "None"}
-//                 </h4>
-
-//                 <h3>Preferences:</h3>
-//                 <h4>
-//                   {recipe.questions.PreferencesQuestion?.PreferencesAnswer?.join(", ") || "None"}
-//                 </h4>
-//               </CardContent>
-//             </Card>
-//           </Grid>
-//         ))}
-//       </Grid>
-//     </Box>
-//   );
-// }
-
-
-import React, { useEffect, useState } from "react";
-import { Card, CardContent, Typography, Grid, Box } from "@mui/material";
-
-export default function AllRecipes() {
-  const [recipes, setRecipes] = useState([]);
-
-  useEffect(() => {
-    async function fetchRecipes() {
-      try {
-        const res = await fetch("http://localhost:4000/api/recipesAll");
-        console.log("HTTP status:", res.status);
-        const text = await res.text();
-        console.log("Response text:", text);
-        const data = JSON.parse(text);
-        setRecipes(data);
-      } catch (err) {
-        console.error("Error fetching recipes help:", err);
-      }
-    }
-
-    fetchRecipes();
-  }, []);
+  const handleClose = () => setSelectedRecipe(null);
+  console.log("Food Constraints:", recipes)
 
   return (
-    <Box sx={{ padding: 2 }}>
-      <Grid container spacing={2}>
-        {recipes.map((recipe) => {
-          const q = recipe.questions || {};
+    <>
+      <Stack direction="row" spacing={2} flexWrap="wrap">
+        {recipes.map((recipe) => (
+          <Card
+            key={recipe._id}
+            sx={{
+              width: 250,
+              height: 150,
+              mb: 2,
+              cursor: "pointer",
+              borderRadius: 3,
+              boxShadow: "0 8px 16px rgba(0,0,0,0.2)",
+              backdropFilter: "blur(4px)",
+              transition: "transform 0.2s",
+              "&:hover": { transform: "scale(1.03)" },
+            }}
+            onClick={() => setSelectedRecipe(recipe)}
+          >
+            <CardContent>
+              <Typography variant="h6" gutterBottom>
+                {recipe.recipeName}
+              </Typography>
+              <Typography variant="body2" color="text.secondary" gutterBottom>
+                By: {recipe.createdBy.firstName} {recipe.createdBy.lastName}
+              </Typography>
+              <Stack direction="row" spacing={1} flexWrap="wrap" mt={1}>
+                {recipe.foodConstraints?.map((fc) => (
+                  <Chip
+                    key={fc._id}
+                    label={fc.constraint}
+                    size="small"
+                    color="primary"
+                    sx={{ mb: 0.5 }}
+                  />
+                ))}
+              </Stack>
+            </CardContent>
+          </Card>
+        ))}
+      </Stack>
 
-          return (
-            <Grid item xs={12} sm={6} md={4} key={recipe._id}>
-              <Card sx={{ width: "300px", minHeight: "200px" }}>
-                <CardContent>
-                  <h2>{recipe.recipeName}</h2>
-                  <h4>
-                    Description: {recipe.description}
-                  </h4>
-
-                  {/* Render each allergy type only if it exists and has items */}
-                  {q.AirborneQuestion?.AirAnswer?.length > 0 && (
-                    <>
-                      <h3>Airborne:</h3>
-                      <p>
-                        {q.AirborneQuestion.AirAnswer.join(", ")}
-                      </p>
-                    </>
-                  )}
-
-                  {q.DietaryQuestion?.DietaryAnswer?.length > 0 && (
-                    <>
-                      <h3>Dietary:</h3>
-                      <p>
-                        {q.DietaryQuestion.DietaryAnswer.join(", ")}
-                      </p>
-                    </>
-                  )}
-
-                  {q.DietaryRestrictionsQuestion?.DRAnswer?.length > 0 && (
-                    <>
-                      <h3>Restrictions:</h3>
-                      <p>
-                        {q.DietaryRestrictionsQuestion.DRAnswer.join(", ")}
-                      </p>
-                    </>
-                  )}
-
-                  {q.PreferencesQuestion?.PreferencesAnswer?.length > 0 && (
-                    <>
-                      <h3>Preferences:</h3>
-                      <p>
-                        {q.PreferencesQuestion.PreferencesAnswer.join(", ")}
-                      </p>
-                    </>
-                  )}
-                </CardContent>
-              </Card>
-            </Grid>
-          );
-        })}
-      </Grid>
-    </Box>
+      <Modal open={!!selectedRecipe} onClose={handleClose}>
+        <Box sx={modalStyle}>
+          {selectedRecipe && (
+            <>
+              <Typography variant="h5" gutterBottom>
+                {selectedRecipe.recipeName}
+              </Typography>
+              <Typography variant="subtitle1" color="text.secondary">
+                By: {selectedRecipe.createdBy.firstName} {selectedRecipe.createdBy.lastName}
+              </Typography>
+              <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                Email: {selectedRecipe.createdBy.email}
+              </Typography>
+              <Typography variant="body1" sx={{ my: 2 }}>
+                {selectedRecipe.description || "No description provided."}
+              </Typography>
+              <Stack direction="row" spacing={1} flexWrap="wrap">
+                {selectedRecipe.foodConstraints?.map((fc) => (
+                  <Chip
+                    key={fc._id}
+                    label={fc.constraint}
+                    size="small"
+                    color="primary"
+                  />
+                ))}
+              </Stack>
+            </>
+          )}
+        </Box>
+      </Modal>
+    </>
   );
 }
+

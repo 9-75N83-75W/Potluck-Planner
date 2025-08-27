@@ -5,11 +5,11 @@ import express from 'express';
 
 import { authenticateToken } from "../middleware/authMiddleware.js";
 // Users
-import { createUser, loginUser, logoutUser, getAllUsers, forgetPassword, updateUserFoodConstraint, getUserProfile, refreshToken } from '../controller/UserController.js';
+import { createUser, loginUser, logoutUser, getAllUsers, forgetPassword, updateUserFoodConstraint, getUserProfile, refreshToken, findOrCreateConstraint } from '../controller/UserController.js';
 // Food Constraints
-import { createFoodConstraint, getAllFoodConstraints, getFoodConstraintById, updateFoodConstraint, deleteFoodConstraint } from '../controller/FoodConstraintController.js'
+import { createFoodConstraint, getAllFoodConstraints, getFoodConstraintById, updateFoodConstraint, deleteFoodConstraint} from '../controller/FoodConstraintController.js'
 // Event
-import { createEvent, getAllEvents, getEventById, updateEvent, deleteEvent, addGuest, updateGuestRSVP, assignRecipeToGuest, getInvitedEvents } from '../controller/EventController.js';
+import { createEvent, getAllEvents, getEventById, updateEvent, deleteEvent, addGuest, updateGuestRSVP, assignRecipeToGuest, getInvitedEvents, getAcceptedEvents, getEventConstraints } from '../controller/EventController.js';
 // Recipe
 import { createRecipe, getAllRecipes, getRecipeById, updateRecipe, deleteRecipe, getRecipesByEvent, getRecipesByUser} from '../controller/RecipeController.js';
 
@@ -27,9 +27,24 @@ router.post("/logout", logoutUser);
 router.get("/:id", authenticateToken, getUserProfile);
 router.get("/allUsers", authenticateToken, getAllUsers);
 
-// food constraint updates
+// food constraint
 router.put("/:id/constraints/:category", authenticateToken, updateUserFoodConstraint);
-
+router.post("/foodConstraint/findOrCreate", authenticateToken, async (req, res) => {
+    try {
+      const { constraint, category } = req.body;
+  
+      if (!constraint || !category) {
+        return res.status(400).json({ error: "Constraint and category are required" });
+      }
+  
+      const id = await findOrCreateConstraint(constraint, category);
+  
+      res.json({ _id: id });
+    } catch (err) {
+      console.error("Error in findOrCreate route:", err);
+      res.status(500).json({ error: err.message });
+    }
+  });
 // authentication
 router.post("/refresh", refreshToken);
 
@@ -55,6 +70,9 @@ router.get("/event/:id", getEventById);
 router.put("/:id/eventUpdate", authenticateToken, updateEvent);
 router.delete("/:id/eventDelete", authenticateToken, deleteEvent);
 router.get('/events/invited', authenticateToken, getInvitedEvents);
+router.get('/events/accepted', authenticateToken, getAcceptedEvents);
+router.get("/event/:eventId/constraints", authenticateToken, getEventConstraints);
+
 
 // guests
 router.post("/:id/addGuests", authenticateToken, addGuest);
@@ -72,26 +90,8 @@ router.put("/updateRecipe/:id", authenticateToken, updateRecipe);
 router.delete("/deleteRecipe/:id", authenticateToken, deleteRecipe);
 
 // Get recipes by event or user
-router.get("/by-event/:eventId", getRecipesByEvent);
-router.get("/by-user/:userId", getRecipesByUser);
-
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------
-// // Short Term Fixes Routes
-// // add this GET route for invitations:
-// router.get('/events/invited', getInvitedEventsByEmail);
-// //invites
-// router.put('/inviteEvent/:id',acceptInviteNew);
-
-// // GET all recipes
-// router.get("/recipesAll", getAllRecipes);
-
-// router.get("/userEvents", getUserEvents);
-
-// //invites
-// //router.get('/inviteEvent/:id',acceptInvite);
-
-// router.get('/attendees/:id',countingAttendees);
+router.get("/:eventId/recipes", getRecipesByEvent);
+router.get("/:userId/recipes", getRecipesByUser);
 
 
 export default router;

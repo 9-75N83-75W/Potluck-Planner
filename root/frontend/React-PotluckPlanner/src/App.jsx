@@ -22,8 +22,8 @@ function App() {
       <Route path='/Dashboard' element={<Dashboard/>}/>
       <Route path='/SetupProfile' element={<SetupProfile/>}/>
       <Route path='/Preferences' element={<UserProfile/>}/>
-      <Route path='/Event' element={<Event/>}/>
-      <Route path="/Event/:id" element={<Event />} />
+      {/* <Route path='/Event' element={<Event/>}/> */}
+      <Route path="/Event/:id" element={<Event/>} />
 
 
     </Routes>
