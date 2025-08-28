@@ -67,6 +67,7 @@ export default function RestrictionsForm() {
      * @param {object} e The form submission event.
      */
     const handleSubmit = async (e) => {
+        
         e.preventDefault();
         setLoading(true);
 
@@ -79,6 +80,8 @@ export default function RestrictionsForm() {
             const userId = user.id;
             const accessToken = user.accessToken; // Retrieve the access token
             const requests = [];
+            console.log("Auth:", userId)
+            console.log("Auth2:", accessToken)
 
             categories.forEach(({ key }) => {
                 if (formData[key].hasConstraint === "yes" && formData[key].details) {

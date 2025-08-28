@@ -22,9 +22,6 @@ export default function UserBanner() {
 
         const token = storedUser.accessToken;
         const userId = storedUser.id;
-        // // Assuming accessToken + userId are saved in localStorage at login
-        // const token = localStorage.getItem("accessToken");
-        // const userId = localStorage.getItem("userId");
 
         if (!token || !userId) return;
 
@@ -45,50 +42,6 @@ export default function UserBanner() {
 
   const initials = `${user.firstName?.[0] || ""}${user.lastName?.[0] || ""}`.toUpperCase();
 
-//   return (
-//     <div
-//       style={{
-//         display: "flex",
-//         alignItems: "center",
-//         padding: "20px 24px",
-//         margin: "16px",
-//         backgroundColor: "#F8F8F8",
-//         borderRadius: "16px",
-//         boxShadow: "0 8px 30px rgba(0,0,0,0.25)", // darker/blurred shadow
-//       }}
-//     >
-//       {/* Avatar Circle */}
-//       <Avatar
-//         style={{
-//           backgroundColor: getRandomPastelColor(),
-//           width: "120px",
-//           height: "120px",
-//           fontSize: "42px",
-//           fontWeight: "bold",
-//           marginRight: "20px",
-//         }}
-//       >
-//         {initials}
-//       </Avatar>
-
-//       {/* Greeting */}
-//       <h1
-//         style={{
-//           margin: 0,
-//           fontSize: "2.5rem",
-//           color: "#021A26",
-//         }}
-//       >
-//         Hey {user.firstName}!
-//       </h1>
-//       <div>
-//         <NavBar/>
-//       </div>
-//     </div>
-//   );
-// }
-
-
 return (
   <div
     style={{
@@ -107,11 +60,13 @@ return (
       <Avatar
         style={{
           backgroundColor: getRandomPastelColor(),
-          width: "120px",
-          height: "120px",
-          fontSize: "42px",
+          width: "56px",
+          height: "56px",
+          fontSize: "20px",
           fontWeight: "bold",
           marginRight: "20px",
+          alignItems: "center",
+          justifyContent: "center",
         }}
       >
         {initials}
@@ -120,11 +75,11 @@ return (
       <h1
         style={{
           margin: 0,
-          fontSize: "2.5rem",
+          fontSize: "2rem",
           color: "#F2F0EF",
         }}
       >
-        Hey {user.firstName}!
+        {user.firstName} {user.lastName}
       </h1>
     </div>
 

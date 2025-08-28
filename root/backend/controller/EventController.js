@@ -245,13 +245,32 @@ export const getAcceptedEvents = async (req, res) => {
         { "guests": { $elemMatch: { member: userId, status: "accepted" } } },
         { "guests": { $elemMatch: { email: user.email, status: "accepted" } } }
       ]
-    }).select("eventName"); // only return eventName and _id by default
+    })
+      .populate("host", "firstName lastName email") // populate host info
+      .select("eventName host description location dateTime rsvpDate guests"); // same fields as invited events
 
-    // Optionally, include _id explicitly
-    const formattedEvents = events.map(event => ({
-      _id: event._id,
-      eventName: event.eventName,
-    }));
+    // Format events so host info + guest info included nicely
+    const formattedEvents = events.map(event => {
+      // find the guest object corresponding to logged-in user
+      const guest = event.guests.find(
+        g => g.member?.toString() === userId.toString() || g.email === user.email
+      );
+
+      return {
+        _id: event._id,
+        eventName: event.eventName,
+        host: {
+          firstName: event.host?.firstName || "",
+          lastName: event.host?.lastName || "",
+          email: event.host?.email || ""
+        },
+        description: event.description,
+        location: event.location,
+        dateTime: event.dateTime,
+        rsvpDate: event.rsvpDate,
+        guest, // the logged-in user's guest entry (so you have status, etc.)
+      };
+    });
 
     res.json({ events: formattedEvents });
   } catch (err) {
@@ -259,6 +278,43 @@ export const getAcceptedEvents = async (req, res) => {
     res.status(500).json({ error: `Failed to fetch accepted events: ${err}` });
   }
 };
+
+export const getHostedEvents = async (req, res) => {
+  try {
+    const userId = req.user.id; // logged-in user's ID
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Find events where the logged-in user is the host
+    const events = await Event.find({ host: userId })
+      .populate("host", "firstName lastName email") // populate host info
+      .select("eventName host description location dateTime rsvpDate guests");
+
+    // Format events
+    const formattedEvents = events.map(event => ({
+      _id: event._id,
+      eventName: event.eventName,
+      host: {
+        firstName: event.host?.firstName || "",
+        lastName: event.host?.lastName || "",
+        email: event.host?.email || ""
+      },
+      description: event.description,
+      location: event.location,
+      dateTime: event.dateTime,
+      rsvpDate: event.rsvpDate,
+      guests: event.guests || [] // include full guest list for hosted events
+    }));
+
+    res.json({ events: formattedEvents });
+  } catch (err) {
+    console.error("Error fetching hosted events:", err);
+    res.status(500).json({ error: `Failed to fetch hosted events: ${err}` });
+  }
+};
+
 
 
 export const getEventConstraints = async (req, res) => {

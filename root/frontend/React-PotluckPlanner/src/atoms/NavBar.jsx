@@ -57,7 +57,17 @@ export default function NavBar() {
         open={Boolean(anchorEl)}
         onClose={handleMenuClose}
       >
-        <MenuItem onClick={handleLogout}>Logout</MenuItem>
+        <MenuItem onClick={() => { navigate("/Dashboard"); handleMenuClose(); }}>
+          Dashboard
+        </MenuItem>
+
+        <MenuItem onClick={() => { navigate("/Settings"); handleMenuClose(); }}>
+          Settings
+        </MenuItem>
+
+        <MenuItem onClick={handleLogout}>
+          Logout
+        </MenuItem>
       </Menu>
     </div>
   );

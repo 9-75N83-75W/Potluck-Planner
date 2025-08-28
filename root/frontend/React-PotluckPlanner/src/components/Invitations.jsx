@@ -1,164 +1,233 @@
 // imports
 import React, { useEffect, useState } from "react";
-import axios from "axios"; // for API calls
-import { Button, Modal, Box } from "@mui/material";
+import axios from "axios";
+import { Modal, Box } from "@mui/material";
 
 export default function Invitations() {
 
-  // State to store all events user is invited to
   const [events, setEvents] = useState([]);
-  // Stat to store currently selected event for viewing/updating RSVP
   const [selectedEvent, setSelectedEvent] = useState(null);
 
-  // Fetch invited events when component mounts
+  // Fetch invited events
   useEffect(() => {
     const fetchInvitedEvents = async () => {
       try {
-        
-        // Get logged-in user from localStorage
         const storedUser = JSON.parse(localStorage.getItem("user"));
-        if (!storedUser) return; // exit if user not found
+        if (!storedUser) return;
 
-        // JWT token for auth
         const token = storedUser.accessToken;
 
-        // GET request to backend to fetch invited events
         const res = await axios.get(`http://localhost:4000/api/events/invited`, {
-          headers: { Authorization: `Bearer ${token}` }, // passing token in headers
+          headers: { Authorization: `Bearer ${token}` },
         });
 
-        // Save fetched events in state
         setEvents(res.data.events);
-        console.log("Fetched invited events:", res.data.events);
       } catch (err) {
         console.error("Error fetching invited events:", err);
       }
     };
-    // calling async function
+
     fetchInvitedEvents();
-  }, []); // empty dependency array -> runs once on mount
+  }, []);
 
-
-  // Function to handle RSVP (accept/decline)
   const handleRSVP = async (status) => {
     try {
-
-      // Get logged-in user from localStorage
       const storedUser = JSON.parse(localStorage.getItem("user"));
-      if (!storedUser || !selectedEvent) return; // exit if no user or no selected event
+      if (!storedUser || !selectedEvent) return;
 
-      // Checkpoint
-      // console.log("Stored User:", storedUser);
-      // console.log("Selected Event:", selectedEvent);
-
-      // JWT token for auth
       const token = storedUser.accessToken;
-
-      // Get guest & event object for this user from the selected event
       const guest = selectedEvent.guest || [];
       const eventId = selectedEvent._id;
 
-      // Checkpoint
-      console.log("Event ID:", eventId);
-      console.log("Guest:", guest);
-      console.log("Guest ID:", guest._id);
-  
-      // PUT request to backend to update RSVP status for this guest
-      const res = await axios.put(
+      await axios.put(
         `http://localhost:4000/api/${eventId}/guests/${guest._id}/status`,
         { status },
-        { headers: { Authorization: `Bearer ${token}` } } // pass auth token
+        { headers: { Authorization: `Bearer ${token}` } }
       );
-  
-      // Checkpoint for RSVP update
-      console.log("RSVP updated:", res.data);
 
-      setSelectedEvent(null); // closes modal after RSVP
-      // After RSVP success:
+      setSelectedEvent(null);
+
+      // Remove events already responded to
       setEvents(prev =>
         prev.filter(ev => {
           const currentGuest = ev.guests?.find(g => g._id === guest._id);
-          return currentGuest?.status === "invited"; // keep only still-invited events
+          return currentGuest?.status === "invited";
         })
       );
-
     } catch (err) {
       console.error("Error updating RSVP:", err);
     }
   };
-  
+
+  const maxEventsToShow = 3;
+  const maxHeight = events.length > maxEventsToShow ? "330px" : "auto";
 
   return (
+    <div style={{
+      height: "100%",
+      padding: "26px 30px",
+      margin: "16px",
+      backgroundColor: "white",
+      borderRadius: "16px",
+      boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
+      border: "1px solid #e2e8f0"
+    }}>
 
-    <div style={{ width: "50%", padding: "16px" }}>
+      {/* Header */}
+      <div style={{ display: "flex", flexDirection: "column", padding: "10px 14px", }}>
+        <div style={{ display: "flex", marginLeft: "24px", alignItems: "center", gap: "8px", marginBottom: "16px" }}>
+          <span style={{ fontSize: "38px", color: "#2563eb" }}>📨</span>
+          <h2 style={{ fontSize: "28px", fontWeight: 600, color: "#1f2937", margin: 0 }}>
+            Pending Invitations
+          </h2>
+          <span style={{ backgroundColor: "#dbeafe", color: "#1e40af", fontSize: "20px", padding: "8px 16px", borderRadius: "25%" }}>
+            {events.length}
+          </span>
+        </div>
+      </div>
 
-      <h1>Invitations</h1>
+      {/* Invitations list */}
+      <div style={{
+        display: "flex",
+        flexDirection: "column",
+        padding: "10px 14px",
+        margin: "24px",
+        marginTop: "1px",
+        gap: "12px",
+        maxHeight: maxHeight,
+        overflowY: events.length > maxEventsToShow ? "auto" : "visible",
+        paddingRight: "4px",
+        scrollbarWidth: "thin",
+        scrollbarColor: "#94a3b8 #e5e7eb"
+      }}
+        className="custom-scrollbar"
+      >
+        {events.length === 0 ? (
+          <p style={{ color: "#6b7280" }}>No pending invitations.</p>
+        ) : (
+          events.map(event => (
+            <div key={event._id} style={{
+              border: "1px solid #e2e8f0",
+              borderRadius: "12px",
+              padding: "18px",
+              paddingLeft: "28px",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              cursor: "pointer",
+              transition: "background 0.2s",
+            }}
+              onClick={() => setSelectedEvent({ ...event })}
+              onMouseEnter={e => e.currentTarget.style.backgroundColor = "#f9fafb"}
+              onMouseLeave={e => e.currentTarget.style.backgroundColor = "white"}
+            >
+              <div style={{ marginRight: "28px" }}>
+                <h3 style={{ fontWeight: 500, color: "#1f2937", margin: "0 0 4px 0" }}>
+                  {event.eventName}
+                </h3>
+                <p style={{ fontSize: "14px", color: "#6b7280", margin: "0 0 2px 0" }}>
+                  Hosted by {event.host?.firstName} {event.host?.lastName || ""}
+                </p>
+                <p style={{ fontSize: "12px", color: "#9ca3af", margin: 0 }}>
+                  {new Date(event.dateTime).toLocaleString("en-US", {
+                    year: "numeric",
+                    month: "short",
+                    day: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </p>
+              </div>
 
-      {/* If there are no events, display no events message. */}
-      {events.length === 0 ? (
-        <p>No events found.</p>
+              <button style={{
+                minWidth: "100px",
+                backgroundColor: "#2563eb",
+                color: "white",
+                padding: "6px 12px",
+                borderRadius: "8px",
+                border: "none",
+                cursor: "pointer",
+                fontSize: "14px",
+                fontWeight: 500,
+                transition: "background 0.2s",
+                flexShrink: 0
+              }}
+                onMouseEnter={e => e.currentTarget.style.backgroundColor = "#1e40af"}
+                onMouseLeave={e => e.currentTarget.style.backgroundColor = "#2563eb"}
+              >
+                Respond
+              </button>
+            </div>
+          ))
+        )}
+      </div>
 
-      ) : (
-        // Otherwise, render a button for each event
-        events.map(event => (
-          <button
-            key={event._id}
-            variant="contained"
-            style={{ margin: "8px" }}
-            onClick={() =>
-              setSelectedEvent({
-                ...event, // set the clicked event as selected
-              })
-            }
-          >
-            {event.eventName} {/*Button label */}
-          </button>
-        ))
-      )}
+      {/* Scrollbar styling */}
+      <style>
+        {`
+          .custom-scrollbar::-webkit-scrollbar {
+            width: 8px;
+          }
+          .custom-scrollbar::-webkit-scrollbar-track {
+            background: #e5e7eb;
+            border-radius: 8px;
+          }
+          .custom-scrollbar::-webkit-scrollbar-thumb {
+            background-color: #94a3b8;
+            border-radius: 8px;
+            border: 2px solid #e5e7eb;
+          }
+        `}
+      </style>
 
-      {/* Modal to show Selected event details */}
+      {/* Modal */}
       <Modal
         open={!!selectedEvent}
         onClose={() => setSelectedEvent(null)}
         aria-labelledby="event-modal-title"
         aria-describedby="event-modal-description"
       >
-        <Box
-          sx={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", width: 500, bgcolor: "background.paper", border: "2px solid #000", boxShadow: 24, p: 4, }}
-        >
+        <Box sx={{
+          position: "absolute",
+          top: "50%", left: "50%",
+          transform: "translate(-50%, -50%)",
+          width: 500,
+          bgcolor: "background.paper",
+          borderRadius: "16px",
+          boxShadow: 24,
+          p: 4
+        }}>
           {selectedEvent && (
             <>
               <h2 id="event-modal-title">{selectedEvent.eventName}</h2>
-              <p>
-                <strong>Host:</strong>{" "}
-                {selectedEvent.host.firstName} {selectedEvent.host.lastName} (
-                {selectedEvent.host.email})
-              </p>
-              <p>
-                <strong>Location:</strong> {selectedEvent.location}
-              </p>
-              <p>
-                <strong>Date:</strong>{" "}
-                {new Date(selectedEvent.dateTime).toLocaleString()}
-              </p>
-              <p>
-                <strong>RSVP by:</strong>{" "}
-                {new Date(selectedEvent.rsvpDate).toLocaleString()}
-              </p>
-              <p>
-                <strong>Description:</strong> {selectedEvent.description}
-              </p>
+              <p><strong>Host:</strong> {selectedEvent.host.firstName} {selectedEvent.host.lastName} ({selectedEvent.host.email})</p>
+              <p><strong>Location:</strong> {selectedEvent.location}</p>
+              <p><strong>Date:</strong> {new Date(selectedEvent.dateTime).toLocaleString()}</p>
+              <p><strong>RSVP by:</strong> {new Date(selectedEvent.rsvpDate).toLocaleString()}</p>
+              <p><strong>Description:</strong> {selectedEvent.description}</p>
 
-              <button variant="contained" color="success" onClick={() => handleRSVP("accepted")}>
+              <button onClick={() => handleRSVP("accepted")} style={{
+                backgroundColor: "#16a34a",
+                color: "white",
+                padding: "6px 12px",
+                borderRadius: "8px",
+                marginRight: "8px",
+                border: "none",
+                cursor: "pointer"
+              }}>
                 Accept
               </button>
 
-              <button variant="contained" color="error" onClick={() => handleRSVP("declined")}>
+              <button onClick={() => handleRSVP("declined")} style={{
+                backgroundColor: "#dc2626",
+                color: "white",
+                padding: "6px 12px",
+                borderRadius: "8px",
+                border: "none",
+                cursor: "pointer"
+              }}>
                 Decline
               </button>
-
-
-              
             </>
           )}
         </Box>

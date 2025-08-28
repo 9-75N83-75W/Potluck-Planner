@@ -13,21 +13,7 @@ export default function SignIn() {
     };
   
     return (
-        //welcome text
-        //sign in! text
-        //form with fields:
-            //email
-            //password
-            //button to sign in (redirects to TBD -- Dashboard.jsx?)
-            //button to create user (redirects to CreateUser.jsx)
-
-            // NON MVP
-            //button to forget password (redirects to TBD -- ForgotPassword.jsx?)
-            //Remember me checkbox
-      // <div>
-      //   <h1>Sign In</h1>
-      //   <button onClick={() => navigate('/CreateAccount')}>Create New User</button>
-      // </div>
+      
       <Box
       display="flex"
       flexDirection="column"

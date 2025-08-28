@@ -9,7 +9,7 @@ import { createUser, loginUser, logoutUser, getAllUsers, forgetPassword, updateU
 // Food Constraints
 import { createFoodConstraint, getAllFoodConstraints, getFoodConstraintById, updateFoodConstraint, deleteFoodConstraint} from '../controller/FoodConstraintController.js'
 // Event
-import { createEvent, getAllEvents, getEventById, updateEvent, deleteEvent, addGuest, updateGuestRSVP, assignRecipeToGuest, getInvitedEvents, getAcceptedEvents, getEventConstraints } from '../controller/EventController.js';
+import { createEvent, getAllEvents, getEventById, updateEvent, deleteEvent, addGuest, updateGuestRSVP, assignRecipeToGuest, getInvitedEvents, getAcceptedEvents, getHostedEvents, getEventConstraints } from '../controller/EventController.js';
 // Recipe
 import { createRecipe, getAllRecipes, getRecipeById, updateRecipe, deleteRecipe, getRecipesByEvent, getRecipesByUser} from '../controller/RecipeController.js';
 
@@ -71,6 +71,7 @@ router.put("/:id/eventUpdate", authenticateToken, updateEvent);
 router.delete("/:id/eventDelete", authenticateToken, deleteEvent);
 router.get('/events/invited', authenticateToken, getInvitedEvents);
 router.get('/events/accepted', authenticateToken, getAcceptedEvents);
+router.get('/events/hosting', authenticateToken, getHostedEvents)
 router.get("/event/:eventId/constraints", authenticateToken, getEventConstraints);
 
 

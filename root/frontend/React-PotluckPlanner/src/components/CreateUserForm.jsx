@@ -44,6 +44,7 @@ export default function CreateUserForm() {
       setLoading(true);
     
       try {
+        
         const response = await fetch("http://localhost:4000/api/register", {
           method: "POST",
           headers: {
@@ -65,13 +66,16 @@ export default function CreateUserForm() {
         if (response.ok) {
 
           // Store the access and refresh tokens
+          localStorage.setItem("userId", data.user.id);
           localStorage.setItem("accessToken", data.accessToken);
-          localStorage.setItem("refreshToken", data.refreshToken);
-
-          alert("User created successfully!");
-          console.log(data.user); // optional
-
-          localStorage.setItem("userId", data.user.Id);
+          localStorage.setItem("user", JSON.stringify({
+                id: data.user.id,
+                email: data.user.email,
+                firstName: data.user.firstName,
+                lastName: data.user.lastName,
+                accessToken: data.accessToken,
+                refreshToken: data.refreshToken,
+            }));
 
           navigate("/SetupProfile");
 
