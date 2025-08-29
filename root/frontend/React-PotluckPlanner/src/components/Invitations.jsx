@@ -2,33 +2,8 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Modal, Box } from "@mui/material";
-
-export default function Invitations() {
-
-  const [events, setEvents] = useState([]);
+export default function Invitations({ events, onRSVP }) {
   const [selectedEvent, setSelectedEvent] = useState(null);
-
-  // Fetch invited events
-  useEffect(() => {
-    const fetchInvitedEvents = async () => {
-      try {
-        const storedUser = JSON.parse(localStorage.getItem("user"));
-        if (!storedUser) return;
-
-        const token = storedUser.accessToken;
-
-        const res = await axios.get(`http://localhost:4000/api/events/invited`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-
-        setEvents(res.data.events);
-      } catch (err) {
-        console.error("Error fetching invited events:", err);
-      }
-    };
-
-    fetchInvitedEvents();
-  }, []);
 
   const handleRSVP = async (status) => {
     try {
@@ -45,15 +20,10 @@ export default function Invitations() {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      setSelectedEvent(null);
+      // Notify Dashboard so it updates state
+      onRSVP(eventId, guest._id, status);
 
-      // Remove events already responded to
-      setEvents(prev =>
-        prev.filter(ev => {
-          const currentGuest = ev.guests?.find(g => g._id === guest._id);
-          return currentGuest?.status === "invited";
-        })
-      );
+      setSelectedEvent(null);
     } catch (err) {
       console.error("Error updating RSVP:", err);
     }
@@ -62,10 +32,12 @@ export default function Invitations() {
   const maxEventsToShow = 3;
   const maxHeight = events.length > maxEventsToShow ? "330px" : "auto";
 
-  return (
+    return (
     <div style={{
-      height: "100%",
-      padding: "26px 30px",
+      height: "90%",
+      paddingTop: "28px",
+      paddingBottom: "1px",
+      padding: "22px",
       margin: "16px",
       backgroundColor: "white",
       borderRadius: "16px",
@@ -94,7 +66,7 @@ export default function Invitations() {
         margin: "24px",
         marginTop: "1px",
         gap: "12px",
-        maxHeight: maxHeight,
+        maxHeight: "200px",
         overflowY: events.length > maxEventsToShow ? "auto" : "visible",
         paddingRight: "4px",
         scrollbarWidth: "thin",
@@ -107,6 +79,7 @@ export default function Invitations() {
         ) : (
           events.map(event => (
             <div key={event._id} style={{
+              backgroundColor: "#E3EFFF",
               border: "1px solid #e2e8f0",
               borderRadius: "12px",
               padding: "18px",
@@ -119,7 +92,7 @@ export default function Invitations() {
             }}
               onClick={() => setSelectedEvent({ ...event })}
               onMouseEnter={e => e.currentTarget.style.backgroundColor = "#f9fafb"}
-              onMouseLeave={e => e.currentTarget.style.backgroundColor = "white"}
+              onMouseLeave={e => e.currentTarget.style.backgroundColor = "#E3EFFF"}
             >
               <div style={{ marginRight: "28px" }}>
                 <h3 style={{ fontWeight: 500, color: "#1f2937", margin: "0 0 4px 0" }}>

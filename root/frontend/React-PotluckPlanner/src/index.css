@@ -6,9 +6,9 @@
   margin: 0.8em 1.6em;
 
   color-scheme: light dark;
-  color: #786D82;
-  /* background-color: #F4D597; */
-  background-color: #F2F0EF;
+  color: #8B7E96;
+  background-color: #F4D597;
+  /* background-color: #F2F0EF; */
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -70,4 +70,16 @@ button:focus-visible {
   }
 }
 
+@keyframes float {
+  0% { transform: translate(0, 0); }
+  25% { transform: translate(5px, -10px); }
+  50% { transform: translate(-5px, 10px); }
+  75% { transform: translate(10px, -5px); }
+  100% { transform: translate(0, 0); }
+}
+
+.floating {
+  position: absolute;
+  animation: float 6s ease-in-out infinite;
+}
 

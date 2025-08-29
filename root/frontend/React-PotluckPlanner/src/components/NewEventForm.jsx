@@ -16,7 +16,7 @@ const style = {
   p: 4,
 };
 
-export default function NewEventForm({ open, onClose }) {
+export default function NewEventForm({ open, onClose, onEventCreated }) {
   const [eventName, setEventName] = useState("");
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
@@ -58,7 +58,18 @@ export default function NewEventForm({ open, onClose }) {
       });
 
       console.log("Event created:", response.data);
+      if (onEventCreated) {
+        onEventCreated(response.data.event); 
+      }
       onClose();
+
+      setEventName("");
+      setDate("");
+      setTime("");
+      setLocation("");
+      setDescription("");
+      setRsvpDate("");
+      setInvitees("");
 
     } catch (err) {
       console.error("Error creating event:", err.response?.data || err.message);
@@ -136,9 +147,9 @@ export default function NewEventForm({ open, onClose }) {
                 placeholder='e.g. alice@example.com, john@example.com'
                 helperText="Note: Please separate by commas."
               />
-              <Button type="submit" variant="contained" disabled={loading}>
+              <button type="submit" variant="contained" disabled={loading}>
                 {loading ? <CircularProgress size={24} /> : "Create Event"}
-              </Button>
+              </button>
             </Stack>
           </form>
         </Box>

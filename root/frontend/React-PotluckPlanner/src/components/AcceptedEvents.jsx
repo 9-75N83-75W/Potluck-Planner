@@ -3,43 +3,21 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
-export default function AcceptedEvents() {
-
-    const [acceptedEvents, setAcceptedEvents] = useState([]);
+export default function AcceptedEvents({ events }) {
     const navigate = useNavigate();
-
-    useEffect(() => {
-        const fetchAcceptedEvents = async () => {
-            try {
-                const storedUser = JSON.parse(localStorage.getItem("user"));
-                if (!storedUser) return;
-
-                const token = storedUser.accessToken;
-
-                const res = await axios.get("http://localhost:4000/api/events/accepted", {
-                    headers: { Authorization: `Bearer ${token}` },
-                });
-
-                setAcceptedEvents(res.data.events);
-            } catch (err) {
-                console.error("Error fetching accepted events:", err);
-            }
-        };
-
-        fetchAcceptedEvents();
-    }, []);
-
-    if (acceptedEvents.length === 0) {
-        return <p style={{ margin: "16px" }}>No accepted events found.</p>;
-    }
+  
+    if (events.length === 0) {
+      return <p style={{ margin: "16px" }}>No accepted events found.</p>;
+    };
 
     const maxEventsToShow = 3;
-    const maxHeight = acceptedEvents.length > maxEventsToShow ? "330px" : "auto";
+    const maxHeight = events.length > maxEventsToShow ? "330px" : "auto";
 
     return (
         <div style={{
-            height: "100%",
-            padding: "26px 30px",
+            height: "90%",
+            paddingTop: "28px",
+            padding: "22px 22px",
             margin: "16px",
             backgroundColor: "white",
             borderRadius: "16px",
@@ -55,7 +33,7 @@ export default function AcceptedEvents() {
                     Upcoming Events
                 </h2>
                 <span style={{ backgroundColor: "#dbeafe", color: "#1e40af", fontSize: "20px", padding: "8px 16px", borderRadius: "25%" }}>
-                    {acceptedEvents.length}
+                    {events.length}
                 </span>
               </div>
             </div>
@@ -69,27 +47,29 @@ export default function AcceptedEvents() {
                 marginTop: "1px",
                 gap: "12px",
                 maxHeight: maxHeight,
-                overflowY: acceptedEvents.length > maxEventsToShow ? "auto" : "visible",
+                overflowY: events.length > maxEventsToShow ? "auto" : "visible",
                 paddingRight: "4px",
                 scrollbarWidth: "thin",
                 scrollbarColor: "#94a3b8 #e5e7eb"
             }}
                 className="custom-scrollbar"
             >
-                {acceptedEvents.map((event) => (
+                {events.map((event) => (
                     <div key={event._id} style={{
+                        backgroundColor: "#E3EFFF",
                         border: "1px solid #e2e8f0",
                         borderRadius: "12px",
-                        padding: "18px",
-                        paddingLeft: "28px",
+                        paddingTop: "28px",
+                        paddingBottom: "1px",
+                        padding: "22px",
                         display: "flex",
                         justifyContent: "space-between",
                         alignItems: "center",
                         cursor: "pointer",
-                        transition: "background 0.2s"
+                        transition: "background 0.2s",
                     }}
                         onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#f9fafb"}
-                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "white"}
+                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "#E3EFFF"}
                     >
                         <div style={{ marginRight: "28px" }}>
                             <h3 style={{ fontWeight: 500, color: "#1f2937", margin: "0 0 4px 0" }}>

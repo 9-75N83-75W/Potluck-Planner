@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Modal, Box, Typography, TextField, Checkbox, FormGroup, FormControlLabel, Button, Chip, Autocomplete, Alert, CircularProgress} from "@mui/material";
-import RecipesCards from "../components/RecipesCards";
 import axios from "axios";
-import FoodConstraint from "../../../../backend/models/FoodConstraint";
 
 const styleModal = { position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)",
   maxWidth: "90vw",         // keeps it within screen width
@@ -153,107 +151,175 @@ export default function RecipesForm({ open, onClose, eventId, onRecipeCreated })
       setLoading(false);
     }
   };
-
+  
   return (
-      <Modal open={open} onClose={onClose}>
+    <Modal open={open} onClose={onClose}>
+      <Box
+        sx={{
+          ...styleModal,
+          width: "65%",
+          height: "60%",
+          padding: "80px",
+          borderRadius: "16px",
+        }}
+      >
+        {/* Header */}
+        <div style={{ fontSize: "42px", fontWeight: 600, marginBottom: "8px" }}>
+          Recipe Form
+        </div>
+  
+        {/* Alert */}
+        {alertVisible && (
+          <Alert
+            severity="error"
+            style={{ marginBottom: "16px", borderRadius: "8px" }}
+          >
+            ⚠️ Please remove any ingredients under "airborne allergen" as they are unsafe for some guests.
+          </Alert>
+        )}
+  
+        <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "14px", padding: "2px" }}>
+          <TextField
+            label="Recipe Name"
+            value={recipeName}
+            onChange={(e) => setRecipeName(e.target.value)}
+            fullWidth
+            required
+            margin="normal"
+            sx={{ borderRadius: "8px" }}
+          />
+  
+          <TextField
+            label="Description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            fullWidth
+            multiline
+            rows={3}
+            margin="normal"
+            sx={{ borderRadius: "8px" }}
+          />
 
-        <Box sx={ styleModal }>
+          <h3 style={{ fontSize: "20px", fontWeight: 600, color: "#1f2937", margin: 0 }}>
+            Are any of the following an ingredient in your dish? Please select all that apply.
+          </h3>
+  
+          {/* Airborne Allergies */}
+          <div style={{ fontSize: "16px", fontWeight: 500 }}>Airborne Allergies</div>
+          <FormGroup>
+            {constraints.airborneAllergies.map((a) => (
+              <FormControlLabel
+                key={a}
+                control={
+                  <Checkbox
+                    value={a}
+                    checked={airborneChecked.includes(a)}
+                    onChange={handleAirborneChange}
+                  />
+                }
+                label={a}
+                sx={{ borderRadius: "8px" }}
+              />
+            ))}
+          </FormGroup>
 
-          <h1>Recipe Form</h1>
+          <h3 style={{ fontSize: "20px", fontWeight: 600, color: "#1f2937", margin: 0 }}>
+            Does your dish follow any of these dietary restrictions? Please select all that apply.
+          </h3>
+  
+          {/* Dietary Restrictions */}
+          <div style={{ fontSize: "18px", fontWeight: 500 }}>Dietary Restrictions</div>
+          <FormGroup>
+            {constraints.dietaryRestrictions.map((d) => (
+              <FormControlLabel
+                key={d}
+                control={
+                  <Checkbox
+                    value={d}
+                    checked={dietaryChecked.includes(d)}
+                    onChange={handleDietaryChange}
+                  />
+                }
+                label={d}
+                sx={{ borderRadius: "8px" }}
+              />
+            ))}
+          </FormGroup>
 
-          {alertVisible && (
-            <Alert severity="error" sx={{ mb: 2 }}>
-              ⚠️ This dish contains an ingredient extremely unsafe for some guests!
-            </Alert>
-          )}
-
-
-          <form onSubmit={handleSubmit}>
-
-            <TextField
-              label = "Recipe Name"
-              value = {recipeName}
-              onChange={(e) => setRecipeName(e.target.value)}
-              fullWidth
-              required
-              margin = "normal"
-            />
-
-            <TextField
-              label = "Description"
-              value = {description}
-              onChange={(e) => setDescription(e.target.value)}
-              fullWidth
-              multilinerows = {3}
-              margin = "normal"
-            />
-
-            < h3>
-              Airborne Allergies
-            </h3>
-            <FormGroup>
-              {constraints.airborneAllergies.map((a) => (
-                <FormControlLabel
-                  key = {a}
-                  control = {
-                    <Checkbox
-                      value = {a}
-                      checked = {airborneChecked.includes(a)}
-                      onChange = {handleAirborneChange}
-                    />
-                  }
-                  label = {a}
-                />
-              ))}
-            </FormGroup>
-
-            < h3>
-              Dietary Restrictions
-            </h3>
-            <FormGroup>
-              {constraints.dietaryRestrictions.map((d) => (
-                <FormControlLabel
-                  key = {d}
-                  control = {
-                    <Checkbox
-                      value = {d}
-                      checked = {dietaryChecked.includes(d)}
-                      onChange = {handleDietaryChange}
-                    />
-                  }
-                  label = {d}
-                />
-              ))}
-            </FormGroup>
-
-            < h3>
-              Dietary Allergens
-            </h3>
-            <Autocomplete
-              multiple
-              freeSolo
-              options = {constraints.dietaryAllergies}
-              value = {dietaryAllergens}
-              onChange = {(e, newValue) => setDietaryAllergens(newValue)}
-              renderTags = {(value, getTagProps) =>
-                value.map((option, index) => {
-                  const { key: chipKey, ...tagProps } = getTagProps({ index }); // destructure key out
-                  return <Chip key={chipKey} label={option} {...tagProps} sx={{ backgroundColor: "#FDF9C5" }} />
+          <h3 style={{ fontSize: "20px", fontWeight: 600, color: "#1f2937", margin: 0 }}>
+            Please add any ingredients from this list that you will be using.
+          </h3>
+  
+          {/* Dietary Allergens */}
+          <div style={{ fontSize: "18px", fontWeight: 500 }}>Dietary Allergens</div>
+          <Autocomplete
+            multiple
+            freeSolo
+            options={constraints.dietaryAllergies}
+            value={dietaryAllergens}
+            onChange={(e, newValue) => setDietaryAllergens(newValue)}
+            renderTags={(value, getTagProps) =>
+              value.map((option, index) => {
+                const { key: chipKey, ...tagProps } = getTagProps({ index });
+                return (
+                  <Chip
+                    key={chipKey}
+                    label={option}
+                    {...tagProps}
+                    sx={{
+                      backgroundColor: "#FDF9C5",
+                      borderRadius: "16px",
+                      margin: "2px",
+                    }}
+                  />
+                );
               })
-              }
-              renderInput={(params) => (
-                <TextField {...params} variant = "outlined" label = "Allergens" />
-              )}
-            />
-
-            <button type="submit" variant="contained" disabled = {loading || submitDisabled} >
-                  {loading ? <CircularProgress size={24} /> : "Add Recipe"}
-            </button>
-          </form>
-
-        </Box>
-
-      </Modal>
-
-  )
+            }
+            renderInput={(params) => (
+              <TextField {...params} variant="outlined" label="Allergens" sx={{ borderRadius: "8px" }} />
+            )}
+          />
+  
+          {/* Submit Button */}
+          {/* <button
+            type="submit"
+            disabled={loading || submitDisabled}
+            style={{
+              backgroundColor: "#8B7E96",
+              width: "300px%",
+              color: "white",
+              padding: "10px 16px",
+              borderRadius: "16px",
+              fontWeight: 600,
+              fontSize: "16px",
+              border: "none",
+              cursor: loading || submitDisabled ? "not-allowed" : "pointer",
+            }}
+          >
+            {loading ? <CircularProgress size={24} style={{ color: "white" }} /> : "Add Recipe"}
+          </button> */}
+            <div style={{ display: "flex", justifyContent: "center", marginTop: "16px" }}>
+              <button
+                type="submit"
+                disabled={loading || submitDisabled}
+                style={{
+                  backgroundColor: "#8B7E96",
+                  width: "300px",          // fixed typo
+                  color: "white",
+                  padding: "10px 16px",
+                  borderRadius: "16px",
+                  fontWeight: 600,
+                  fontSize: "16px",
+                  border: "none",
+                  cursor: loading || submitDisabled ? "not-allowed" : "pointer",
+                }}
+              >
+                Submit
+              </button>
+            </div>
+        </form>
+      </Box>
+    </Modal>
+  );
+  
 }
