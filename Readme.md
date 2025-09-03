@@ -26,7 +26,7 @@ This project grew from our love of sharing meals together and the challenges foo
 ---
 ##  📌 Core Features:
   * Create profile and store list of food constraints.
-     * Categoried by severity --> airborne allergens, dietary allergens, dietary restrictions, and preferences
+     * Categorized by severity --> airborne allergens, dietary allergens, dietary restrictions, and preferences
      * Events and new recipe forms are automatically populated with any allergens or restrictions present amongst accepted attendees
   * Create & join potluck events
      * Ability to send out / accept invitations with RSVP dates, description, contact info, location, etc.
@@ -46,7 +46,7 @@ This project grew from our love of sharing meals together and the challenges foo
 - LinkTree: https://linktr.ee/PotluckPlanner
 
 ---
-## Backend Structure:
+## 🗄️ Backend Structure:
   * Food Constraints are stored separately, and referenced in User. It's designed so that each time a profile is created, and restriction are inputed, the constraint and it's category (ie airborne, dietary allergy, dietary restriction, likes, or dislikes) is assigned. If the constraint and category exist in database, from another user, it will reference them. Else it will create a new constraint. This way, the constraints are more controlled and there are no duplicates.
 
 ---
@@ -57,7 +57,7 @@ This project grew from our love of sharing meals together and the challenges foo
   * Dietary allergens and dietary restrictions are tagged with yellow and green labels. While they can be brought to an event, guests are notified which dishes contain allergens.
 
 ---
-## Future Implementations:    
+## 🤖 Future Implementations:    
   * Barcode API Integration – Streamline ingredient entry, accounts for allergens present in any premade / store-bought ingredients
   * Derivative Allergy Detection – Identify hidden allergens, promote utmost safety
   * Dish Image Uploads – Add photos for clarity & appeal
