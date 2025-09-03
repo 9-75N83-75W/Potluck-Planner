@@ -46,11 +46,11 @@ This project grew from our love of sharing meals together and the challenges foo
 - LinkTree: https://linktr.ee/PotluckPlanner
 
 ---
-## Backend Structure
+## Backend Structure:
   * Food Constraints are stored separately, and referenced in User. It's designed so that each time a profile is created, and restriction are inputed, the constraint and it's category (ie airborne, dietary allergy, dietary restriction, likes, or dislikes) is assigned. If the constraint and category exist in database, from another user, it will reference them. Else it will create a new constraint. This way, the constraints are more controlled and there are no duplicates.
 
 ---
-## ⚠️ Safety Features
+## ⚠️ Safety Features:
   * Constraints are categorized by severity of risk, ranging from airborne allergens, dietary allergens, dietary restrictions, and likes/dislikes
   * Airborne allergens cannot be present at event given the severe risk they pose to any guest(s)
       * As such, if an airborne allergen is selected in the new recipe form, there is an alert message & submit button is disabled until that ingredient is removed.
