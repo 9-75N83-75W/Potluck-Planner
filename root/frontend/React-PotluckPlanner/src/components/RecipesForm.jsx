@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { Modal, Box, Typography, TextField, Checkbox, FormGroup, FormControlLabel, Button, Chip, Autocomplete, Alert, CircularProgress} from "@mui/material";
+import { Modal, Box, TextField, Checkbox, FormGroup, FormControlLabel, Chip, Autocomplete, Alert, } from "@mui/material";
 import axios from "axios";
+import RecipeImage from "../atoms/RecipeImage";
 
 const styleModal = { position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)",
   maxWidth: "90vw",         // keeps it within screen width
@@ -157,7 +158,7 @@ export default function RecipesForm({ open, onClose, eventId, onRecipeCreated })
       <Box
         sx={{
           ...styleModal,
-          width: "65%",
+          width: "45%",
           height: "60%",
           padding: "80px",
           borderRadius: "16px",
@@ -165,7 +166,7 @@ export default function RecipesForm({ open, onClose, eventId, onRecipeCreated })
       >
         {/* Header */}
         <div style={{ fontSize: "42px", fontWeight: 600, marginBottom: "8px" }}>
-          Recipe Form
+          New Recipe Form.
         </div>
   
         {/* Alert */}
@@ -200,12 +201,14 @@ export default function RecipesForm({ open, onClose, eventId, onRecipeCreated })
             sx={{ borderRadius: "8px" }}
           />
 
-          <h3 style={{ fontSize: "20px", fontWeight: 600, color: "#1f2937", margin: 0 }}>
+          {/* Airborne Allergies */}
+
+          <div style={{ fontSize: "20px", fontWeight: 600, paddingTop: "16px"}}>Airborne Allergies</div>
+
+          <h3 style={{ fontSize: "16px", fontWeight: 400, color: "#1f2937", margin: 0, letterSpacing: "-0.5px" }}>
             Are any of the following an ingredient in your dish? Please select all that apply.
           </h3>
-  
-          {/* Airborne Allergies */}
-          <div style={{ fontSize: "16px", fontWeight: 500 }}>Airborne Allergies</div>
+
           <FormGroup>
             {constraints.airborneAllergies.map((a) => (
               <FormControlLabel
@@ -223,12 +226,14 @@ export default function RecipesForm({ open, onClose, eventId, onRecipeCreated })
             ))}
           </FormGroup>
 
-          <h3 style={{ fontSize: "20px", fontWeight: 600, color: "#1f2937", margin: 0 }}>
-            Does your dish follow any of these dietary restrictions? Please select all that apply.
+          {/* Dietary Restrictions */}
+
+          <div style={{ fontSize: "20px", fontWeight: 600, paddingTop: "16px" }}>Dietary Restrictions</div>
+
+          <h3 style={{ fontSize: "16px", fontWeight: 400, color: "#1f2937", margin: 0, letterSpacing: "-0.5px" }}>
+            Does your dish adhere to any of these dietary restrictions? Please select all that apply.
           </h3>
   
-          {/* Dietary Restrictions */}
-          <div style={{ fontSize: "18px", fontWeight: 500 }}>Dietary Restrictions</div>
           <FormGroup>
             {constraints.dietaryRestrictions.map((d) => (
               <FormControlLabel
@@ -246,12 +251,13 @@ export default function RecipesForm({ open, onClose, eventId, onRecipeCreated })
             ))}
           </FormGroup>
 
-          <h3 style={{ fontSize: "20px", fontWeight: 600, color: "#1f2937", margin: 0 }}>
+          {/* Dietary Allergens */}
+          <div style={{ fontSize: "20px", fontWeight: 600, paddingTop: "16x"}}>Dietary Allergens</div>
+
+          <h3 style={{ fontSize: "16px", fontWeight: 400, color: "#1f2937", margin: 0, letterSpacing: "-0.5px" }}>
             Please add any ingredients from this list that you will be using.
           </h3>
   
-          {/* Dietary Allergens */}
-          <div style={{ fontSize: "18px", fontWeight: 500 }}>Dietary Allergens</div>
           <Autocomplete
             multiple
             freeSolo
@@ -279,25 +285,10 @@ export default function RecipesForm({ open, onClose, eventId, onRecipeCreated })
               <TextField {...params} variant="outlined" label="Allergens" sx={{ borderRadius: "8px" }} />
             )}
           />
-  
-          {/* Submit Button */}
-          {/* <button
-            type="submit"
-            disabled={loading || submitDisabled}
-            style={{
-              backgroundColor: "#8B7E96",
-              width: "300px%",
-              color: "white",
-              padding: "10px 16px",
-              borderRadius: "16px",
-              fontWeight: 600,
-              fontSize: "16px",
-              border: "none",
-              cursor: loading || submitDisabled ? "not-allowed" : "pointer",
-            }}
-          >
-            {loading ? <CircularProgress size={24} style={{ color: "white" }} /> : "Add Recipe"}
-          </button> */}
+          <div style={{ paddingTop: "16px" }}>
+            <RecipeImage/>
+          </div>
+
             <div style={{ display: "flex", justifyContent: "center", marginTop: "16px" }}>
               <button
                 type="submit"

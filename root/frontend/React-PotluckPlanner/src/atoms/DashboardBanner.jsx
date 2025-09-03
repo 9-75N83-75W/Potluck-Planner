@@ -48,10 +48,10 @@ export default function DashboardBanner() {
         justifyContent: "space-between",
         padding: "32px 34px",
         margin: "16px",
-        backgroundColor: "#8B7069",
+        backgroundColor: "#8B7E96",
         borderRadius: "16px",
         boxShadow: "0 2px 6px #404040", // subtle shadow
-        border: "1px solid #8B7069",
+        border: "1px solid #8B7E96",
       }}
     >
       {/* Left side: Avatar + Greeting */}

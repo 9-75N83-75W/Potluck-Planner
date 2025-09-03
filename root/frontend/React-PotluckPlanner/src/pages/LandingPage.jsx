@@ -1,5 +1,4 @@
 // imports for components
-
 import WelcomeBlock from "../components/WelcomeBlock";
 import FloatingEmojisBackground from "../atoms/FloatingEmojisBackground";
 

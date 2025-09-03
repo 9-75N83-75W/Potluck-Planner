@@ -1,17 +1,7 @@
 // imports
 import * as React from 'react';
-import Box from '@mui/material/Box';
-import Drawer from '@mui/material/Drawer';
-import IconButton from '@mui/material/IconButton';
-import List from '@mui/material/List';
-import Divider from '@mui/material/Divider';
-import ListItem from '@mui/material/ListItem';
-import ListItemButton from '@mui/material/ListItemButton';
-import ListItemText from '@mui/material/ListItemText';
-import MenuIcon from '@mui/icons-material/Menu';
 import { useNavigate } from 'react-router-dom';
-import Stack from '@mui/material/Stack';
-import Chip from '@mui/material/Chip';
+import { Box, Drawer, IconButton, List, Divider, ListItem, ListItemButton, ListItemText, MenuIcon, Stack, Chip } from '@mui/material'
 
 export default function SideBar() {
   const [open, setOpen] = React.useState(false);
@@ -94,15 +84,6 @@ export default function SideBar() {
             Dashboard.
         </button>
       </Stack>
-    {/* <Stack
-        direction="row"
-        spacing={2}
-        sx={{ m: 1 }}
-    >
-        <button>
-            <ListItemText primary="Airborne" />
-        </button>
-    </Stack> */}
     </Box>
   );
 

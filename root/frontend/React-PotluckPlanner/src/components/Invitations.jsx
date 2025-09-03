@@ -1,5 +1,5 @@
 // imports
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import axios from "axios";
 import { Modal, Box } from "@mui/material";
 export default function Invitations({ events, onRSVP }) {

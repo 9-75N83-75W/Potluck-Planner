@@ -143,19 +143,6 @@ export const getUserProfile = async (req, res) => {
     }
 };
 
-//--------------------------------------------------------------------------------------------
-
-// // Find or create food constraint
-// const findOrCreateConstraint = async (constraint, category) => {
-
-//     let existingConstraint = await FoodConstraint.findOne({constraint: constraint.trim().toLowerCase(), category, });
-//     if (existingConstraint) return existingConstraint._id;
-
-//     const newConstraint = new FoodConstraint({ constraint: constraint.trim().toLowerCase(), category, });
-//     await newConstraint.save();
-//     return newConstraint._id;
-// };
-
 // Find or create food constraint
 export const findOrCreateConstraint = async (constraint, category) => {
   try {

@@ -2,9 +2,6 @@
 
 export default function EventCard({ eventInfo, guests}) {
 
-    // console.log("Event Info:", eventInfo)
-    // console.log("Event Guest:", guests)
-
     return(
         <>
             {/* <h1>Event Details</h1> */}

@@ -30,15 +30,6 @@ export default function SignIn() {
       </div>
 
       <div>
-
-      {/* <button
-        onClick={() => navigate("/Dashboard")}
-      > 
-        Sign In
-      </button> */}
-      </div>
-
-      <div>
         <h2>New to Potluck Planner? Create an account first. ⬇️ </h2>
       <button
         onClick={() => navigate("/CreateAccount")}

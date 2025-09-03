@@ -1,8 +1,7 @@
 import * as React from 'react';
 import { useState } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
-import { Backdrop, Box, Modal, Fade, TextField, Stack, Button, CircularProgress } from '@mui/material';
+import { Box, Modal, TextField, Stack, CircularProgress } from '@mui/material';
 
 const style = {
   position: 'absolute',
@@ -93,9 +92,9 @@ export default function NewEventForm({ open, onClose, onEventCreated }) {
           boxShadow: 24,
           borderRadius: 2,
         }}>
-          <h2>Create a new event.</h2>
+          <div style={{ fontSize: "38px", fontWeight: 600, marginBottom: "8px", lineHeight: "1.2", paddingBottom: "16px" }}>Create a new event.</div>
           <form onSubmit={handleSubmit}>
-            <Stack spacing={2}>
+            <Stack spacing={3}>
               <TextField
                 label="Event Name"
                 value={eventName}

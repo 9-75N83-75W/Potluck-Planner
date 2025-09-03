@@ -78,8 +78,6 @@ export default function Event() {
       <DashboardBanner />
 
       <EventCard eventInfo={eventData} guests={acceptedGuests} />
-      {/* <EventRecipeCards recipes={recipes} />
-      <AddRecipeButton handleOpen={isModalOpen} onClose={handleClose} eventId={id} onRecipeCreated={fetchRecipes}/> */}
 
       <div style={{ display: "flex", gap: "16px", margin: "16px", alignItems: "stretch" }}>
         <div style={{ display: "flex", flexDirection: "column", gap: "16px", width: "30%" }}>
@@ -89,10 +87,6 @@ export default function Event() {
           <EventConstraints eventId={id} />
 
         </div>
-        {/* Add Recipe Button */}
-        {/* <AddRecipeButton handleOpen={handleOpen} style={{ flex: "0 0 250px" }} />
-
-        <EventConstraints eventId={id} /> */}
 
         {/* Recipe Cards */}
         <EventRecipeCards recipes={recipes} style={{ flex: 1 }} />

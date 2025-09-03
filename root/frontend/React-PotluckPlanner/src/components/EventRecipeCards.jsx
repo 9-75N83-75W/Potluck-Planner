@@ -1,7 +1,7 @@
 // imports
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Stack, Modal, Box, Typography } from "@mui/material";
+import { Modal, Box, Typography } from "@mui/material";
 
 const modalStyle = {
   position: "absolute",
@@ -176,7 +176,7 @@ export default function EventRecipeCards({ recipes }) {
         <Box sx={modalStyle}>
           {selectedRecipe && (
             <>
-              <Typography variant="h5" gutterBottom>
+              <Typography variant="h4" gutterBottom>
                 {selectedRecipe.recipeName}
               </Typography>
               <Typography variant="subtitle1" color="text.secondary">
